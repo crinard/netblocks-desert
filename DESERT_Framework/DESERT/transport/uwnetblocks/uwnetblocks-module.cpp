@@ -37,7 +37,7 @@ static class UwNetBlocksClass : public TclClass
 {
 public:
 	UwNetBlocksClass()
-		: TclClass("Module/UW/NetBlocks")
+		: TclClass("Module/UW/NETBLOCKS")
 	{
 	}
 

@@ -54,7 +54,7 @@
 #   +--------------------------+   +--------------------------+   +-------------+------------+
 #   |  7. UW/APPLICATION       |   |  7. UW/APPLICATION       |   |  7. UW/APP  | UW/APP     |
 #   +--------------------------+   +--------------------------+   +-------------+------------+
-#   |  6. UW/UDP               |   |  6. UW/UDP               |   |  6. UW/UDP               |
+#   |  6. UW/NETBLOCKS               |   |  6. UW/NETBLOCKS               |   |  6. UW/NETBLOCKS               |
 #   +--------------------------+   +--------------------------+   +--------------------------+
 #   |  5. UW/STATICROUTING     |   |  5. UW/STATICROUTING     |   |  5. UW/STATICROUTING     |
 #   +--------------------------+   +--------------------------+   +--------------------------+
@@ -90,6 +90,8 @@ load libuwip.so
 load libuwstaticrouting.so
 load libuwmll.so
 load libuwudp.so
+load libuwnetblocks.so
+
 load libuwapplication.so
 
 #############################
@@ -201,14 +203,14 @@ Module/MPhy/BPSK  set TxPower_          $opt(txpower)
 ################################
 proc createNode { id } {
 
-    global channel propagation data_mask ns app position node udp portnum ipr ipif
+    global channel propagation data_mask ns app position node netblocks portnum ipr ipif
     global phy posdb opt rvposx mll mac db_manager
     global node_coordinates
     
     set node($id) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
 
     set app($id)  [new Module/UW/APPLICATION] 
-    set udp($id)  [new Module/UW/UDP]
+    set netblocks($id)  [new Module/UW/NETBLOCKS]
     set ipr($id)  [new Module/UW/StaticRouting]
     set ipif($id) [new Module/UW/IP]
     set mll($id)  [new Module/UW/MLL] 
@@ -216,22 +218,22 @@ proc createNode { id } {
     set phy($id)  [new Module/MPhy/BPSK]
 
     $node($id) addModule 7 $app($id)   0  "CBR"
-    $node($id) addModule 6 $udp($id)   0  "UDP"
+    $node($id) addModule 6 $netblocks($id)   0  "NETBLOCKS"
     $node($id) addModule 5 $ipr($id)   0  "IPR"
     $node($id) addModule 4 $ipif($id)  0  "IPF"   
     $node($id) addModule 3 $mll($id)   0  "MLL"
     $node($id) addModule 2 $mac($id)   0  "MAC"
     $node($id) addModule 1 $phy($id)   0  "PHY"
 
-    $node($id) setConnection $app($id)   $udp($id)   0
-    $node($id) setConnection $udp($id)   $ipr($id)   0
+    $node($id) setConnection $app($id)   $netblocks($id)   0
+    $node($id) setConnection $netblocks($id)   $ipr($id)   0
     $node($id) setConnection $ipr($id)   $ipif($id)  0
     $node($id) setConnection $ipif($id)  $mll($id)   0
     $node($id) setConnection $mll($id)   $mac($id)   0
     $node($id) setConnection $mac($id)   $phy($id)   0
     $node($id) addToChannel  $channel    $phy($id)   0
 
-    set portnum($id) [$udp($id) assignPort $app($id) ]
+    set portnum($id) [$netblocks($id) assignPort $app($id) ]
     if {$id > 254} {
     puts "hostnum > 254!!! exiting"
     exit
@@ -260,7 +262,7 @@ proc createNode { id } {
 
 proc createSink { } {
 
-    global channel propagation smask data_mask ns app_sink position_sink node_sink udp_sink portnum_sink interf_data_sink
+    global channel propagation smask data_mask ns app_sink position_sink node_sink netblocks_sink portnum_sink interf_data_sink
     global phy_data_sink posdb_sink opt mll_sink mac_sink ipr_sink ipif_sink bpsk interf_sink
 
     set node_sink [$ns create-M_Node $opt(tracefile) $opt(cltracefile)]
@@ -268,7 +270,7 @@ proc createSink { } {
     for {set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
         set app_sink($cnt)  [new Module/UW/APPLICATION] 
     }
-    set udp_sink       [new Module/UW/UDP]
+    set netblocks_sink       [new Module/UW/NETBLOCKS]
     set ipr_sink       [new Module/UW/StaticRouting]
     set ipif_sink      [new Module/UW/IP]
     set mll_sink       [new Module/UW/MLL] 
@@ -278,7 +280,7 @@ proc createSink { } {
     for { set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
         $node_sink addModule 7 $app_sink($cnt) 0 "CBR"
     }
-    $node_sink addModule 6 $udp_sink       0 "UDP"
+    $node_sink addModule 6 $netblocks_sink       0 "NETBLOCKS"
     $node_sink addModule 5 $ipr_sink       0 "IPR"
     $node_sink addModule 4 $ipif_sink      0 "IPF"   
     $node_sink addModule 3 $mll_sink       0 "MLL"
@@ -286,9 +288,9 @@ proc createSink { } {
     $node_sink addModule 1 $phy_data_sink  0 "PHY"
 
     for { set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
-        $node_sink setConnection $app_sink($cnt)  $udp_sink      0   
+        $node_sink setConnection $app_sink($cnt)  $netblocks_sink      0   
     }
-    $node_sink setConnection $udp_sink  $ipr_sink            0
+    $node_sink setConnection $netblocks_sink  $ipr_sink            0
     $node_sink setConnection $ipr_sink  $ipif_sink           0
     $node_sink setConnection $ipif_sink $mll_sink            0 
     $node_sink setConnection $mll_sink  $mac_sink            0
@@ -296,7 +298,7 @@ proc createSink { } {
     $node_sink addToChannel  $channel   $phy_data_sink       0
 
     for { set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
-        set portnum_sink($cnt) [$udp_sink assignPort $app_sink($cnt)]
+        set portnum_sink($cnt) [$netblocks_sink assignPort $app_sink($cnt)]
         if {$cnt > 252} {
             puts "hostnum > 252!!! exiting"
             exit
@@ -396,7 +398,7 @@ proc finish {} {
     global ns opt
     global mac propagation app_sink mac_sink phy_data phy_data_sink channel db_manager propagation
     global node_coordinates
-    global ipr_sink ipr ipif udp app phy phy_data_sink
+    global ipr_sink ipr ipif netblocks app phy phy_data_sink
     global node_stats tmp_node_stats sink_stats tmp_sink_stats
 
     puts "---------------------------------------------------------------------"

@@ -41,6 +41,7 @@
 
 #include <uwip-module.h>
 #include <uwudp-module.h>
+#include <uwnetblocks-module.h>
 
 #include <module.h>
 #include <iostream>
@@ -313,6 +314,18 @@ protected:
 		tcp_udp == 1 ? test = true : test = false;
 		return test;
 	}
+	virtual bool
+	useUDP() {
+		bool test;
+		tcp_udp == 0 ? test = true : test = false;
+		return test;
+	}
+	virtual bool
+	useNETBLOCKS(){
+		bool test;
+		tcp_udp == 2 ? test = true : test = false;
+		return test;
+	}
 	/**
 	 * If the communication take place without sockets verify if the data
 	 *generation
@@ -565,7 +578,7 @@ protected:
 	// STATISTICAL VARIABLES
 	bool socket_active;
 	string socket_protocol;
-	int tcp_udp; // 1 for tcp, 0 for udp, -1 for none
+	int tcp_udp; // 2 for netblocks, 1 for tcp, 0 for udp, -1 for none
 	bool *sn_check; /**< Used to keep track of the packets already received. */
 	int uidcnt; /**< Identifier counter that identify uniquely the DATA packet
 				   generated*/

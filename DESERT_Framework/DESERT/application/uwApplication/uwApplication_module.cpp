@@ -63,6 +63,7 @@ public:
 	TclObject *
 	create(int, const char *const *)
 	{
+		std::cerr << "uwApplicationModuleClass::create()" << std::endl;
 		return (new uwApplicationModule());
 	}
 } class_module_uwapplicationmodule;
@@ -150,9 +151,15 @@ uwApplicationModule::command(int argc, const char *const *argv)
 				if (useTCP()) {
 					// Generate DATA packets using TCP connection
 					uwApplicationModule::openConnectionTCP();
-				} else {
+				} else if (useUDP()) {
 					// Generate DATA packets using UDP connection
 					uwApplicationModule::openConnectionUDP();
+				} else if (useNETBLOCKS()) {
+					// Generate DATA packets using NETBLOCKS connection
+					uwApplicationModule::openConnectionNETBLOCKS();
+				} else {
+					std::cerr << "\n <<<<<<<UNABLE TO START GENERATION>>>>>>> \n";
+					assert(0);
 				}
 			}
 			return TCL_OK;
@@ -214,7 +221,11 @@ uwApplicationModule::command(int argc, const char *const *argv)
 			} else if (strcasecmp(protocol.c_str(), "TCP") == 0) {
 				socket_active = true;
 				tcp_udp = 1;
+			} else if (strcasecmp(protocol.c_str(), "NETBLOCKS")){
+				socket_active = true;
+				tcp_udp = 2;
 			} else {
+				std::cerr << "SetSocketProtocol: Invalid protocol\n";
 				socket_active = false;
 				tcp_udp = -1;
 			}
@@ -256,13 +267,21 @@ uwApplicationModule::recv(Packet *p)
 				out_log << left << "[" << getEpoch() << "]::" << NOW
 						<< "::UWAPPLICATION::RECV_PACKET_USING_TCP" << endl;
 			statistics(p);
-		} else {
+		} else if (useUDP()){
 			if (debug_ >= 1)
 				std::cout << "[" << getEpoch() << "]::" << NOW
 						  << "::UWAPPLICATION::RECV_PACKET_USING_UDP" << endl;
 			if (logging)
 				out_log << left << "[" << getEpoch() << "]::" << NOW
 						<< "::UWAPPLICATION::RECV_PACKET_USING_UDP" << endl;
+			statistics(p);
+		} else {
+			if (debug_ >= 1)
+				std::cout << "[" << getEpoch() << "]::" << NOW
+						  << "::UWAPPLICATION::RECV_PACKET_USING_NETBLOCKS" << endl;
+			if (logging)
+				out_log << left << "[" << getEpoch() << "]::" << NOW
+						<< "::UWAPPLICATION::RECV_PACKET_USING_NETBLOCKS" << endl;
 			statistics(p);
 		}
 	}
@@ -668,9 +687,14 @@ uwApplicationModule::uwSendTimerAppl::expire(Event *e)
 			// The protocol that the system is using is TCP
 			m_->init_Packet_TCP();
 			m_->chkTimerPeriod.resched(m_->PERIOD);
-		} else {
+		} else if (m_->useUDP()){
 			// The protocol that the system is using is UDP
 			m_->init_Packet_UDP();
+			m_->chkTimerPeriod.resched(m_->PERIOD);
+		} else if (m_->useNETBLOCKS()) {
+			// The protocol that the system is using is NETBLOCKS
+			std::cerr << "Use NETBLOCKS" << std::endl;
+			m_->init_Packet_NETBLOCKS();
 			m_->chkTimerPeriod.resched(m_->PERIOD);
 		}
 	}
