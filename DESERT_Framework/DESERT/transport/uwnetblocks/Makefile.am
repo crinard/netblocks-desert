@@ -25,33 +25,33 @@
 # WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# @file   Makefile.am
-# @author Federico Favaro
-# @version 1.0.0
 
 AM_CXXFLAGS = -Wall -ggdb3
 
-lib_LTLIBRARIES = libuwapplication.la
+lib_LTLIBRARIES = libuwnetblocks.la
+check_PROGRAMS = 
 
-libuwapplication_la_SOURCES = initlib.cpp \
-			      uwApplication_module.cpp \
-			      uwApplication_TCP_socket.cpp\
-			      uwApplication_UDP_socket.cpp \
-				  uwApplication_NETBLOCKS_socket.cpp
-			 
-libuwapplication_la_CPPFLAGS = @NS_CPPFLAGS@ @NSMIRACLE_CPPFLAGS@ @DESERT_CPPFLAGS@
-libuwapplication_la_LDFLAGS = @NS_LDFLAGS@ @NSMIRACLE_LDFLAGS@ @DESERT_LDFLAGS@
-libuwapplication_la_LIBADD = @NS_LIBADD@ @NSMIRACLE_LIBADD@ @DESERT_LIBADD@
+SUBDIRS = 
 
-nodist_libuwapplication_la_SOURCES = InitTcl.cc
+TESTS = 
+
+libuwnetblocks_la_SOURCES = initlib.cpp\
+    uwnetblocks-module.cpp
+
+libuwnetblocks_la_CPPFLAGS = @NS_CPPFLAGS@ @NSMIRACLE_CPPFLAGS@ @DESERT_CPPFLAGS@
+libuwnetblocks_la_LDFLAGS =  @NS_LDFLAGS@ @NSMIRACLE_LDFLAGS@ @DESERT_LDFLAGS@
+libuwnetblocks_la_LIBADD = @NS_LIBADD@ @NSMIRACLE_LIBADD@ @DESERT_LIBADD@
+
+nodist_libuwnetblocks_la_SOURCES = InitTcl.cc
+
 BUILT_SOURCES = InitTcl.cc
 
 CLEANFILES = InitTcl.cc
 
-TCL_FILES = uwApplication-defaults.tcl
+TCL_FILES = uwnetblocks-defaults.tcl
 
-InitTcl.cc : Makefile $(TCL_FILES)
-	cat $(VPATH)/$(TCL_FILES) | @TCL2CPP@ uwApplicationInitTclCode > InitTcl.cc
+InitTcl.cc: Makefile $(TCL_FILES)
+		cat $(VPATH)/$(TCL_FILES) | @TCL2CPP@ UwnetblocksInitTclCode > InitTcl.cc
+
 
 EXTRA_DIST = $(TCL_FILES)

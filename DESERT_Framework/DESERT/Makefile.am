@@ -39,6 +39,7 @@ SUBDIRS = m4 \
     application/uwvbr \
     application/uwApplication \
     transport/uwudp \
+    transport/uwnetblocks \
     network/uwstaticrouting \
     network/uwflooding \
     network/uwsun \

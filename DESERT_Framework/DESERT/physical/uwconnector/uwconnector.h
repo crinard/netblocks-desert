@@ -81,6 +81,12 @@ public:
 	virtual void setUDP(){};
 
 	/**
+	 * @brief 
+	 * 
+	 */
+	virtual void setNETBLOCKS(){};
+	
+	/**
 	 * Method that opens up a connection to a device. This method can open
 	 * a conection with the modem's data/config interface
 	 * or directly to some remote host at the end of the connection.

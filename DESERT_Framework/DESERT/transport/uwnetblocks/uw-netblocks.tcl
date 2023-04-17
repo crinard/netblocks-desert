@@ -26,32 +26,11 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# @file   Makefile.am
-# @author Federico Favaro
+# @file   uwudp-defaults.tcl
+# @author Giovanni Toso
 # @version 1.0.0
 
-AM_CXXFLAGS = -Wall -ggdb3
+PacketHeaderManager set tab_(PacketHeader/UWUDP) 1
 
-lib_LTLIBRARIES = libuwapplication.la
-
-libuwapplication_la_SOURCES = initlib.cpp \
-			      uwApplication_module.cpp \
-			      uwApplication_TCP_socket.cpp\
-			      uwApplication_UDP_socket.cpp \
-				  uwApplication_NETBLOCKS_socket.cpp
-			 
-libuwapplication_la_CPPFLAGS = @NS_CPPFLAGS@ @NSMIRACLE_CPPFLAGS@ @DESERT_CPPFLAGS@
-libuwapplication_la_LDFLAGS = @NS_LDFLAGS@ @NSMIRACLE_LDFLAGS@ @DESERT_LDFLAGS@
-libuwapplication_la_LIBADD = @NS_LIBADD@ @NSMIRACLE_LIBADD@ @DESERT_LIBADD@
-
-nodist_libuwapplication_la_SOURCES = InitTcl.cc
-BUILT_SOURCES = InitTcl.cc
-
-CLEANFILES = InitTcl.cc
-
-TCL_FILES = uwApplication-defaults.tcl
-
-InitTcl.cc : Makefile $(TCL_FILES)
-	cat $(VPATH)/$(TCL_FILES) | @TCL2CPP@ uwApplicationInitTclCode > InitTcl.cc
-
-EXTRA_DIST = $(TCL_FILES)
+Module/UW/UDP       set drop_duplicated_packets_    0
+Module/UW/UDP       set debug_                      0

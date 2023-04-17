@@ -63,7 +63,7 @@ public:
 	 * Enum structure thet represents the transport protocol being used.
 	 * The two possible choices are, of course, TCP or UDP.
 	 */
-	enum class Transport { TCP = 0, UDP };
+	enum class Transport { TCP = 0, UDP=1, NETBLOCKS=2};
 	/**
 	 * Constructor of the UwSocket class
 	 */
@@ -132,6 +132,13 @@ public:
 		proto = Transport::UDP;
 		std::cout << "UDP set" << std::endl;
 	};
+	virtual void 
+	setNETBLOCKS()
+	{
+		proto = Transport::NETBLOCKS;
+		std::cout << "NETBLOCKS set" << std::endl;
+	};
+	}
 	/**
 	 * Method that sets SERVER role
 	 */
@@ -148,7 +155,7 @@ private:
 	 */
 	int socketfd;
 	/**
-	 * Transport protocol to be used: either Transport::TCP or Transport::UDP.
+	 * Transport protocol to be used: either Transport::TCP, Transport::UDP, or Transport::NETBLOCKS
 	 */
 	Transport proto;
 	/**

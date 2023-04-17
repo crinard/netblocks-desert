@@ -167,6 +167,10 @@ public:
 			queuePckReadUDP; /**< Queue that store the DATA packets recevied
 								from the client by the server using a UDP
 								protocol*/
+	std::queue<Packet *>
+			queuePckReadNETBLOCKS; /**< Queue that store the DATA packets recevied
+								from the client by the server using a TCP
+								protocol*/
 	std::ofstream out_log; /**< Variable that handle the file in which the
 							  protocol write the statistics */
 	bool logging;
@@ -253,6 +257,21 @@ protected:
 	 */
 	// virtual void initialize_DATA_pck_wth_UDP();
 	virtual void init_Packet_UDP();
+
+	/**
+	 * When socket communication is used, this method establish a connection
+	 * between client and server. This is required because a NETBLOCKS protocol is
+	 * used.
+	 */
+	virtual int openConnectionNETBLOCKS();
+	/**
+	 * Set all the field of DATA packet and take from the specific queue the
+	 * payload of DATA packet that will be transmitted. After that put down to
+	 * the
+	 * layer below
+	 */
+	// virtual void initialize_DATA_pck_wth_NETBLOCKS();
+	virtual void init_Packet_NETBLOCKS();
 	/**
 	 * Close the socket connection in the case the communication take place with
 	 * socket, otherwise stop the execution of the process, so force the
@@ -585,4 +604,8 @@ void *read_process_TCP(void *arg);
 
 extern "C" {
 void *read_process_UDP(void *arg);
+}
+
+extern "C" {
+void *read_process_NETBLOCKS(void *arg);
 }

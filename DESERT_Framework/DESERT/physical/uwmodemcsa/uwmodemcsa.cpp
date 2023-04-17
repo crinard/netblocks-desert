@@ -169,6 +169,11 @@ UwModemCSA::command(int argc, const char *const *argv)
 			p_connector->setUDP();
 			return TCL_OK;
 		}
+
+		if (!strcmp(argv[1], "setNETBLOCKS")) {
+			p_connector->setNETBLOCKS();
+			return TCL_OK;
+		}
 	}
 	return UwModem::command(argc, argv);
 }

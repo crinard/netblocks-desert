@@ -177,7 +177,7 @@ UwSocket::openConnection(const std::string &path)
 			// }
 		}
 
-	} else { // proto == Transport::UDP
+	} else if (proto == Transport::UDP) {
 
 
 		if (isClient) {
@@ -264,7 +264,91 @@ UwSocket::openConnection(const std::string &path)
 
 		}
 
-	} // Transport::UDP
+	} else {// Transport::NETBLOCKS
+		if (isClient) {
+
+			if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+				local_errno = errno;
+				std::cerr << "UWSOCKET::ERROR::" + std::to_string(local_errno)
+						  << std::endl;
+				return (false);
+			}
+
+			if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &sockoptval, 
+									sizeof(int)) == -1) {
+					local_errno = errno;
+					std::cerr << "UWSOCKET::ERROR::" + std::to_string(local_errno)
+							  << std::endl;
+					return (false);
+			}
+
+			struct sockaddr_in dest_addr;
+
+			// only port provided
+			std::memset(&dest_addr, 0, sizeof(dest_addr));
+			dest_addr.sin_family = AF_INET;
+			dest_addr.sin_port = htons(port);
+			dest_addr.sin_addr.s_addr = inet_addr(address.c_str());
+
+			if (sockfd > 0) {
+				int s_bytes = sendto(sockfd, &udp_init_string, 
+							sizeof(udp_init_string), 0,
+							(const struct sockaddr *) &dest_addr,
+							sizeof(dest_addr));
+			}
+			
+			cl_addr = dest_addr;
+			socketfd = sockfd;
+
+			return (true);
+
+		} else {
+
+			if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+				local_errno = errno;
+				std::cerr << "UWSOCKET::ERROR::" + std::to_string(local_errno)
+						  << std::endl;
+				return (false);
+			}
+
+			if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &sockoptval, 
+									sizeof(int)) == -1) {
+					local_errno = errno;
+					std::cerr << "UWSOCKET::ERROR::" + std::to_string(local_errno)
+							  << std::endl;
+					return (false);
+			}
+
+			struct sockaddr_in my_addr;
+
+			// only port provided
+			std::memset(&my_addr, 0, sizeof(my_addr));
+			my_addr.sin_family = AF_INET;
+			my_addr.sin_port = htons(port);
+			my_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+			if (bind(sockfd, (struct sockaddr *) &my_addr, sizeof(my_addr)) <
+					0) {
+				std::cerr << "UWSOCKET::ERROR::" + std::to_string(local_errno)
+						  << std::endl;
+				return (false);
+			}
+
+
+			socklen_t addrlen = sizeof(cl_addr);
+			char tmp_listen[] = {0};
+			
+			int n_bytes = recvfrom(sockfd, &tmp_listen, sizeof(tmp_listen), 0,
+										(struct sockaddr *)&cl_addr, &addrlen);
+			if(n_bytes > 0)
+				std::cout << "Server connected to client." << std::endl;
+
+			socketfd = sockfd;
+
+			return (true);
+
+		}
+	}
 
 	return (true);
 }
@@ -296,7 +380,21 @@ UwSocket::writeToDevice(const std::string& msg)
 		}
 		return 0;
 
-	} else {		//UDP protocol
+	} else if (proto == Transport::UDP) {
+
+		socklen_t claddr_len = sizeof(cl_addr);
+
+		if (socketfd > 0) {
+			int s_bytes = sendto(socketfd, msg.c_str(), 
+								 static_cast<int>(msg.length()), 0,
+								 (const struct sockaddr *) &cl_addr, claddr_len);
+
+			if (s_bytes >= static_cast<int>(msg.length())) {
+				return (s_bytes);
+			}
+		}
+		return 0;
+	} else {		//NETBLOCKS protocol
 
 		socklen_t claddr_len = sizeof(cl_addr);
 
@@ -325,7 +423,17 @@ UwSocket::readFromDevice(void *wpos, int maxlen)
 		int n_bytes = read(socketfd, wpos, maxlen);
 		return n_bytes;
 
-	} else {		//UDP protocol
+	} else if (proto == Transport::UDP) {
+
+		if (socketfd == -1)
+			return -1;
+
+		socklen_t addrlen = sizeof(cl_addr);
+
+		int n_bytes = recvfrom(socketfd, wpos, maxlen, 0,
+		    (struct sockaddr *)&cl_addr, &addrlen);
+		return n_bytes;
+	} else { // NETBLOCKS protocol
 
 		if (socketfd == -1)
 			return -1;
