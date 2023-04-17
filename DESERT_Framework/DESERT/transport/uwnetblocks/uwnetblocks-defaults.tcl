@@ -26,11 +26,11 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# @file   uwudp-defaults.tcl
-# @author Giovanni Toso
+# @file   uwnetblocks-defaults.tcl
+# @author Chris Rinard
 # @version 1.0.0
 
-PacketHeaderManager set tab_(PacketHeader/UWUDP) 1
+PacketHeaderManager set tab_(PacketHeader/UWNETBLOCKS) 1
 
-Module/UW/UDP       set drop_duplicated_packets_    0
-Module/UW/UDP       set debug_                      0
+Module/UW/NETBLOCKS       set drop_duplicated_packets_    0
+Module/UW/NETBLOCKS       set debug_                      0

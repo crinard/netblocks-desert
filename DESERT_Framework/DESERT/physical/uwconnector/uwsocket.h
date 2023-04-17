@@ -138,7 +138,6 @@ public:
 		proto = Transport::NETBLOCKS;
 		std::cout << "NETBLOCKS set" << std::endl;
 	};
-	}
 	/**
 	 * Method that sets SERVER role
 	 */

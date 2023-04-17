@@ -51,7 +51,7 @@ CLEANFILES = InitTcl.cc
 TCL_FILES = uwnetblocks-defaults.tcl
 
 InitTcl.cc: Makefile $(TCL_FILES)
-		cat $(VPATH)/$(TCL_FILES) | @TCL2CPP@ UwnetblocksInitTclCode > InitTcl.cc
+		cat $(VPATH)/$(TCL_FILES) | @TCL2CPP@ UwNetBlocksInitTclCode > InitTcl.cc
 
 
 EXTRA_DIST = $(TCL_FILES)

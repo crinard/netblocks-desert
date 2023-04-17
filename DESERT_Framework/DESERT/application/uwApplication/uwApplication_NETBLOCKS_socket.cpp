@@ -203,7 +203,6 @@ uwApplicationModule::init_Packet_NETBLOCKS()
 		Packet *ptmp = queuePckReadNETBLOCKS.front();
 		queuePckReadNETBLOCKS.pop();
 		hdr_cmn *ch = HDR_CMN(ptmp);
-		hdr_uwnetblocks *uwnetblocksh = hdr_uwnetblocks::access(ptmp);
 		hdr_uwip *uwiph = hdr_uwip::access(ptmp);
 		hdr_DATA_APPLICATION *uwApph = HDR_DATA_APPLICATION(ptmp);
 
@@ -211,8 +210,6 @@ uwApplicationModule::init_Packet_NETBLOCKS()
 		ch->ptype_ = PT_DATA_APPLICATION;
 		ch->direction_ = hdr_cmn::DOWN;
 		ch->timestamp() = Scheduler::instance().clock();
-
-		uwnetblocksh->dport() = port_num;
 
 		uwiph->daddr() = dst_addr;
 
