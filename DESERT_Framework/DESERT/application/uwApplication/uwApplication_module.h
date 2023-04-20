@@ -566,8 +566,6 @@ protected:
 					 service */
 	int drop_out_of_order; /**< Enable or not the ordering of data packet
 							  received <i>1</i> enabled <i>0</i> not enabled*/
-	// int TCP_CMN; /**< Enable or not the use of TCP protocol when is used the
-	// socket communication <i>1</i> use TCP <i>0</i> use UDP*/
 	uint8_t dst_addr; /**< IP destination address. */
 
 	// TIMER VARIABLES

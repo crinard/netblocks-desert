@@ -448,7 +448,6 @@ uwApplicationModule::init_Packet()
 	double delay = 0;
 
 	hdr_cmn *ch = hdr_cmn::access(p);
-	hdr_uwudp *uwudp = hdr_uwudp::access(p);
 	hdr_uwip *uwiph = hdr_uwip::access(p);
 	hdr_DATA_APPLICATION *uwApph = HDR_DATA_APPLICATION(p);
 
@@ -462,8 +461,15 @@ uwApplicationModule::init_Packet()
 									 // above of him
 
 	// Transport header fields
-	uwudp->dport() = port_num; // Set the destination port
-
+	if (useUDP()) {
+		hdr_uwudp *uwudp = hdr_uwudp::access(p);
+		uwudp->sport() = port_num; // Set the source port
+		uwudp->dport() = port_num; // Set the destination port
+	} else if (useNETBLOCKS()) {
+		hdr_uwnetblocks *uwnetblocks = hdr_uwnetblocks::access(p);
+		uwnetblocks->sport() = port_num; // Set the source port
+		uwnetblocks->dport() = port_num; // Set the destination port
+	}
 	// IP header fields
 	uwiph->daddr() = dst_addr; // Set the IP destination address
 

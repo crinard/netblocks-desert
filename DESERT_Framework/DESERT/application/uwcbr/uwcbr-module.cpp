@@ -265,9 +265,14 @@ UwCbrModule::initPkt(Packet *p)
 	hdr_uwip *uwiph = hdr_uwip::access(p);
 	uwiph->daddr() = dstAddr_;
 
-	hdr_uwudp *uwudp = hdr_uwudp::access(p);
-	uwudp->dport() = dstPort_;
+	// Transport layer variables 
+	// hdr_uwudp *uwudp = hdr_uwudp::access(p);
+	// uwudp->dport() = dstPort_;
 
+	hdr_uwnetblocks *uwnetblocks = hdr_uwnetblocks::access(p);
+	uwnetblocks->dport() = dstPort_;
+	// std::cout << "REEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+	
 	hdr_uwcbr *uwcbrh = HDR_UWCBR(p);
 	uwcbrh->sn() = txsn++;
 	uwcbrh->priority() = priority_;
@@ -354,7 +359,6 @@ UwCbrModule::stop()
 void
 UwCbrModule::recv(Packet *p, Handler *h)
 {
-	//    hdr_cmn* ch = hdr_cmn::access(p);
 	recv(p);
 }
 

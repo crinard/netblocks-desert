@@ -46,6 +46,7 @@
 
 #include <uwip-module.h>
 #include <uwudp-module.h>
+#include <uwnetblocks-module.h>
 
 #include <module.h>
 #include <iostream>

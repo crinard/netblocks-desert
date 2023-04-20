@@ -41,7 +41,7 @@
 #   +-------------------------+
 #   |  7. UW/CBR              |
 #   +-------------------------+
-#   |  6. UW/UDP              |
+#   |  6. UW/NETBLOCKS        |
 #   +-------------------------+
 #   |  5. UW/STATICROUTING    |
 #   +-------------------------+
@@ -76,7 +76,6 @@ load libUwmStd.so
 load libuwip.so
 load libuwstaticrouting.so
 load libuwmll.so
-load libuwudp.so
 load libuwnetblocks.so
 load libuwcbr.so
 load libuwcsmaaloha.so
@@ -163,14 +162,14 @@ Module/MPhy/BPSK  set TxPower_               $opt(txpower)
 ################################
 proc createNode { id } {
 
-    global channel propagation data_mask ns cbr position node udp portnum ipr ipif channel_estimator
+    global channel propagation data_mask ns cbr position node netblocks portnum ipr ipif channel_estimator
     global phy posdb opt rvposx rvposy rvposz mhrouting mll mac woss_utilities woss_creator db_manager
     global node_coordinates
     
     set node($id) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
 	for {set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
 		set cbr($id,$cnt)  [new Module/UW/CBR] 
-		set udp($id,$cnt)  [new Module/UW/UDP]
+		set netblocks($id,$cnt)  [new Module/UW/NETBLOCKS]
 	}
     set ipr($id)  [new Module/UW/StaticRouting]
     set ipif($id) [new Module/UW/IP]
@@ -180,7 +179,7 @@ proc createNode { id } {
 	
 	for {set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
 		$node($id) addModule 7 $cbr($id,$cnt)   1  "CBR"
-		$node($id) addModule 6 $udp($id,$cnt)   1  "UDP"
+		$node($id) addModule 6 $netblocks($id,$cnt)   1  "NETBLOCKS"
 	}
     $node($id) addModule 5 $ipr($id)   1  "IPR"
     $node($id) addModule 4 $ipif($id)  1  "IPF"   
@@ -189,9 +188,9 @@ proc createNode { id } {
     $node($id) addModule 1 $phy($id)   1  "PHY"
 
 	for {set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
-		$node($id) setConnection $cbr($id,$cnt)   $udp($id,$cnt)   0
-		$node($id) setConnection $udp($id,$cnt)   $ipr($id)   0
-		set portnum($id,$cnt) [$udp($id,$cnt) assignPort $cbr($id,$cnt) ]
+		$node($id) setConnection $cbr($id,$cnt)   $netblocks($id,$cnt)   0
+		$node($id) setConnection $netblocks($id,$cnt)   $ipr($id)   0
+		set portnum($id,$cnt) [$netblocks($id,$cnt) assignPort $cbr($id,$cnt) ]
 	}
     $node($id) setConnection $ipr($id)   $ipif($id)  1
     $node($id) setConnection $ipif($id)  $mll($id)   1
@@ -315,7 +314,7 @@ proc finish {} {
     global ns opt outfile
     global mac propagation cbr_sink mac_sink phy_data phy_data_sink channel db_manager propagation
     global node_coordinates
-    global ipr_sink ipr ipif udp cbr phy phy_data_sink
+    global ipr_sink ipr ipif netblocks cbr phy phy_data_sink
     global node_stats tmp_node_stats sink_stats tmp_sink_stats
     if ($opt(verbose)) {
         puts "---------------------------------------------------------------------"
@@ -353,7 +352,7 @@ proc finish {} {
     }
         
     set ipheadersize        [$ipif(1) getipheadersize]
-    set udpheadersize       [$udp(1,0) getudpheadersize]
+    set netblocksheadersize       [$netblocks(1,0) getnetblocksheadersize]
     set cbrheadersize       [$cbr(1,0) getcbrheadersize]
     
     if ($opt(verbose)) {
@@ -362,7 +361,7 @@ proc finish {} {
         puts "Received Packets         : $sum_cbr_rcv_pkts"
         puts "Packet Delivery Ratio    : [expr $sum_cbr_rcv_pkts / $sum_cbr_sent_pkts * 100]"
         puts "IP Pkt Header Size       : $ipheadersize"
-        puts "UDP Header Size          : $udpheadersize"
+        puts "NETBLOCKS Header Size          : $netblocksheadersize"
         puts "CBR Header Size          : $cbrheadersize"
         puts "done!"
     }
