@@ -205,6 +205,7 @@ int
 CsmaAloha::command(int argc, const char *const *argv)
 {
 	Tcl &tcl = Tcl::instance();
+	cout << "CsmaAloha::command() " << argv[1] << endl;
 	if (argc == 2) {
 		if (strcasecmp(argv[1], "setAckMode") == 0) {
 			ack_mode = CSMA_ACK_MODE;
@@ -243,6 +244,7 @@ CsmaAloha::command(int argc, const char *const *argv)
 int
 CsmaAloha::crLayCommand(ClMessage *m)
 {
+	cout << "CsmaAloha::crLayCommand() " << m->type() << endl;
 	switch (m->type()) {
 
 		default:
@@ -253,6 +255,7 @@ CsmaAloha::crLayCommand(ClMessage *m)
 void
 CsmaAloha::initInfo()
 {
+	cout << "CsmaAloha::initInfo()" << endl;
 
 	initialized = true;
 
@@ -305,12 +308,14 @@ CsmaAloha::initInfo()
 void
 CsmaAloha::resetSession()
 {
+	cout << "CsmaAloha::resetSession()" << endl;
 	session_distance = SESSION_DISTANCE_NOT_SET;
 }
 
 void
 CsmaAloha::updateRTT(double curr_rtt)
 {
+	cout << "CsmaAloha::updateRTT()" << endl;
 	srtt = alpha_ * srtt + (1 - alpha_) * curr_rtt;
 	sumrtt += curr_rtt;
 	sumrtt2 += curr_rtt * curr_rtt;
@@ -321,6 +326,7 @@ CsmaAloha::updateRTT(double curr_rtt)
 void
 CsmaAloha::updateAckTimeout(double rtt)
 {
+	cout << "CsmaAloha::updateAckTimeout()" << endl;
 	updateRTT(rtt);
 
 	if (debug_)
@@ -332,6 +338,7 @@ CsmaAloha::updateAckTimeout(double rtt)
 bool
 CsmaAloha::keepDataPkt(int serial_number)
 {
+	cout << "CsmaAloha::keepDataPkt()" << endl;
 	bool keep_packet;
 	if (serial_number > last_data_id_rx) {
 		keep_packet = true;
@@ -344,9 +351,10 @@ CsmaAloha::keepDataPkt(int serial_number)
 double
 CsmaAloha::computeTxTime(CSMA_PKT_TYPE type)
 {
+	cout << "CsmaAloha::computeTxTime()" << endl;
 	double duration;
 	Packet *temp_data_pkt;
-
+	std::cout << "in ComputeTxTime" << std::endl;
 	if (type == CSMA_DATA_PKT) {
 		if (!Q.empty()) {
 			temp_data_pkt = (Q.front())->copy();
@@ -370,12 +378,14 @@ CsmaAloha::computeTxTime(CSMA_PKT_TYPE type)
 void
 CsmaAloha::exitBackoff()
 {
+	cout << "CsmaAloha::exitBackoff()" << endl;
 	backoff_timer.stop();
 }
 
 double
 CsmaAloha::getBackoffTime()
 {
+	cout << "CsmaAloha::getBackoffTime()" << endl;
 	incrTotalBackoffTimes();
 	double random = RNG::defaultrng()->uniform_double();
 
@@ -399,6 +409,7 @@ CsmaAloha::getBackoffTime()
 void
 CsmaAloha::recvFromUpperLayers(Packet *p)
 {
+	cout << "CsmaAloha::recvFromUpperLayers()" << endl;
 	if (((has_buffer_queue == true) && (Q.size() < buffer_pkts)) ||
 			(has_buffer_queue == false)) {
 		initPkt(p, CSMA_DATA_PKT);
@@ -419,6 +430,7 @@ CsmaAloha::recvFromUpperLayers(Packet *p)
 void
 CsmaAloha::initPkt(Packet *p, CSMA_PKT_TYPE type, int dest_addr)
 {
+	cout << "CsmaAloha::initPkt()" << endl;
 	hdr_cmn *ch = hdr_cmn::access(p);
 	hdr_mac *mach = HDR_MAC(p);
 
@@ -446,6 +458,7 @@ CsmaAloha::initPkt(Packet *p, CSMA_PKT_TYPE type, int dest_addr)
 void
 CsmaAloha::Mac2PhyStartTx(Packet *p)
 {
+	cout << "CsmaAloha::Mac2PhyStartTx()" << endl;
 	if (debug_)
 		cout << NOW << "  CsmaAloha(" << addr
 			 << ")::Mac2PhyStartTx() start tx packet" << endl;
@@ -456,7 +469,7 @@ CsmaAloha::Mac2PhyStartTx(Packet *p)
 void
 CsmaAloha::Phy2MacEndTx(const Packet *p)
 {
-
+	cout << "CsmaAloha::Phy2MacEndTx()" << endl;
 	if (debug_)
 		cout << NOW << "  CsmaAloha(" << addr
 			 << ")::Phy2MacEndTx() end tx packet" << endl;
@@ -536,6 +549,7 @@ CsmaAloha::Phy2MacEndTx(const Packet *p)
 void
 CsmaAloha::Phy2MacStartRx(const Packet *p)
 {
+	cout << "CsmaAloha::Phy2MacStartRx()" << endl;
 	if (debug_)
 		cout << NOW << "  CsmaAloha(" << addr
 			 << ")::Phy2MacStartRx() rx Packet " << endl;
@@ -572,7 +586,7 @@ CsmaAloha::Phy2MacStartRx(const Packet *p)
 void
 CsmaAloha::Phy2MacEndRx(Packet *p)
 {
-
+	cout << "CsmaAloha::Phy2MacEndRx()" << endl;	
 	hdr_cmn *ch = HDR_CMN(p);
 	packet_t rx_pkt_type = ch->ptype();
 	hdr_mac *mach = HDR_MAC(p);
@@ -628,6 +642,7 @@ CsmaAloha::Phy2MacEndRx(Packet *p)
 void
 CsmaAloha::txData()
 {
+	cout << "CsmaAloha::txData()" << endl;
 	Packet *data_pkt = curr_data_pkt->copy();
 
 	if ((ack_mode == CSMA_NO_ACK_MODE)) {
@@ -642,6 +657,7 @@ CsmaAloha::txData()
 void
 CsmaAloha::txAck(int dest_addr)
 {
+	cout << "CsmaAloha::txAck()" << endl;
 	Packet *ack_pkt = Packet::alloc();
 	initPkt(ack_pkt, CSMA_ACK_PKT, dest_addr);
 

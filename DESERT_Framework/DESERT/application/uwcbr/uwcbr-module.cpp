@@ -266,8 +266,8 @@ UwCbrModule::initPkt(Packet *p)
 	uwiph->daddr() = dstAddr_;
 
 	// Transport layer variables 
-	// hdr_uwudp *uwudp = hdr_uwudp::access(p);
-	// uwudp->dport() = dstPort_;
+	hdr_uwudp *uwudp = hdr_uwudp::access(p);
+	uwudp->dport() = dstPort_;
 
 	hdr_uwnetblocks *uwnetblocks = hdr_uwnetblocks::access(p);
 	uwnetblocks->dport() = dstPort_;
