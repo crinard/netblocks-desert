@@ -39,11 +39,9 @@
 #
 # Stack of the nodes
 #   +-------------------------+
-#   |  7. UW/CBR              |
+#   |  6. UW/CBR              |
 #   +-------------------------+
-#   |  6. UW/NETBLOCKS        |
-#   +-------------------------+
-#   |  5. UW/STATICROUTING    |
+#   |  5, UW/NETBLOCKS        |
 #   +-------------------------+
 #   |  4. UW/IP               |
 #   +-------------------------+
@@ -74,7 +72,6 @@ load libmphy.so
 load libmmac.so
 load libUwmStd.so
 load libuwip.so
-load libuwstaticrouting.so
 load libuwmll.so
 load libuwudp.so
 load libuwnetblocks.so
@@ -163,26 +160,24 @@ Module/MPhy/BPSK  set TxPower_               $opt(txpower)
 ################################
 proc createNode { id } {
 
-    global channel propagation data_mask ns cbr position node netblocks portnum ipr ipif channel_estimator
+    global channel propagation data_mask ns cbr position node netblocks portnum ipif channel_estimator
     global phy posdb opt rvposx rvposy rvposz mhrouting mll mac woss_utilities woss_creator db_manager
     global node_coordinates
     
     set node($id) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
 	for {set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
-		set cbr($id,$cnt)  [new Module/UW/CBR] 
-		set netblocks($id,$cnt)  [new Module/UW/NETBLOCKS]
-	}
-    set ipr($id)  [new Module/UW/StaticRouting]
+		set cbr($id,$cnt)  [new Module/UW/CBR]
+        set netblocks($id,$cnt)  [new Module/UW/NETBLOCKS]
+    }
     set ipif($id) [new Module/UW/IP]
     set mll($id)  [new Module/UW/MLL] 
     set mac($id)  [new Module/UW/CSMA_ALOHA] 
     set phy($id)  [new Module/MPhy/BPSK]  
 	
 	for {set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
-		$node($id) addModule 7 $cbr($id,$cnt)   1  "CBR"
-		$node($id) addModule 6 $netblocks($id,$cnt)   1  "NETBLOCKS"
-	}
-    $node($id) addModule 5 $ipr($id)   1  "IPR"
+		$node($id) addModule 6 $cbr($id,$cnt)   1  "CBR"
+        $node($id) addModule 5 $netblocks($id,$cnt)   1  "NETBLOCKS"
+    }
     $node($id) addModule 4 $ipif($id)  1  "IPF"   
     $node($id) addModule 3 $mll($id)   1  "MLL"
     $node($id) addModule 2 $mac($id)   1  "MAC"
@@ -190,10 +185,11 @@ proc createNode { id } {
 
 	for {set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
 		$node($id) setConnection $cbr($id,$cnt)   $netblocks($id,$cnt)   0
-		$node($id) setConnection $netblocks($id,$cnt)   $ipr($id)   0
-		set portnum($id,$cnt) [$netblocks($id,$cnt) assignPort $cbr($id,$cnt) ]
-	}
-    $node($id) setConnection $ipr($id)   $ipif($id)  1
+    
+        $node($id) setConnection $netblocks($id,$cnt)   $ipif($id)   0
+        set portnum($id,$cnt) [$netblocks($id,$cnt) assignPort $cbr($id,$cnt) ]
+    }
+    # TODO: This went from every node having a UDP module -> single SR to every node having a UDP+SR
     $node($id) setConnection $ipif($id)  $mll($id)   1
     $node($id) setConnection $mll($id)   $mac($id)   1
     $node($id) setConnection $mac($id)   $phy($id)   1
@@ -245,7 +241,7 @@ for {set id 0} {$id < $opt(nn)} {incr id}  {
 # Inter-node module connection #
 ################################
 proc connectNodes {id1 des1} {
-    global ipif ipr portnum cbr cbr_sink ipif_sink ipr_sink opt 
+    global ipif portnum cbr cbr_sink ipif_sink opt 
 
     $cbr($id1,$des1) set destAddr_ [$ipif($des1) addr]
     $cbr($id1,$des1) set destPort_ $portnum($des1,$id1)
@@ -278,16 +274,16 @@ for {set id1 0} {$id1 < $opt(nn)} {incr id1}  {
 ##################
 # Routing tables #
 ##################
-for {set id1 0} {$id1 < $opt(nn)} {incr id1}  {
-	for {set id2 0} {$id2 < $opt(nn)} {incr id2}  {
-			$ipr($id1) addRoute [$ipif($id2) addr] [$ipif($id2) addr]
-	}
-}
+#for {set id1 0} {$id1 < $opt(nn)} {incr id1}  {
+	# for {set id2 0} {$id2 < $opt(nn)} {incr id2}  {
+		#$netblocks($id1) addRoute [$ipif($id2) addr] [$ipif($id2) addr]
+	#}
+#}
 
 #Print the routing tables of the nodes
 #if {$opt(verbose)} {
 #	for {set id1 0} {$id1 < $opt(nn)} {incr id1}  {
-#		$ipr($id1) printroutes
+#		$netblocks($id1) printroutes
 #	}
 #}
 
@@ -315,7 +311,7 @@ proc finish {} {
     global ns opt outfile
     global mac propagation cbr_sink mac_sink phy_data phy_data_sink channel db_manager propagation
     global node_coordinates
-    global ipr_sink ipr ipif netblocks cbr phy phy_data_sink
+    global ipif netblocks cbr phy phy_data_sink
     global node_stats tmp_node_stats sink_stats tmp_sink_stats
     if ($opt(verbose)) {
         puts "---------------------------------------------------------------------"

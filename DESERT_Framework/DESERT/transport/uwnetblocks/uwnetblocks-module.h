@@ -23,10 +23,18 @@
 	"UPN" /**< Reason for a drop in a <i>UWNETBLOCKS</i> module. */
 #define DROP_RECEIVED_DUPLICATED_PACKET \
 	"RDP" /**< Reason for a drop in a <i>UWNETBLOCKS</i> module. */
+#define DROP_DEST_NO_ROUTE \
+	"DNR" /**< Reason for a drop in a <i>UWVBR</i> module. */
 
 #define HDR_UWNETBLOCKS(P) (hdr_uwnetblocks::access(P))
 
 extern packet_t PT_UWNETBLOCKS;
+
+namespace
+{
+static const uint16_t IP_ROUTING_MAX_ROUTES =
+		254; /**< Maximum number of entries in the routing table of a node. */
+}
 
 /**
  * <i>hdr_uwnetblocks</i> describes <i>UWNETBLOCKS</i> packets.
@@ -93,14 +101,19 @@ public:
 	 * @param Packet* Pointer to the packet will be received.
 	 */
 	virtual void recv(Packet *);
-
+	/**
+	 * Performs the reception of packets from upper and lower layers.
+	 *
+	 * @param Packet* Pointer to the packet will be received.
+	 */
+	virtual void recvUDP(Packet *);
 	/**
 	 * Performs the reception of packets from upper and lower layers.
 	 *
 	 * @param Packet* Pointer to the packet will be received.
 	 * @param Handler* Handler.
 	 */
-	virtual void recv(Packet *, int);
+	virtual void recvUDP(Packet *, int);
 
 	/**
 	 * TCL command interpreter. It implements the following OTcl methods:
@@ -115,14 +128,6 @@ public:
 	virtual int command(int, const char *const *);
 
 	/**
-	 * Associates a module with a port.
-	 *
-	 * @param Module* Module to which associate a port.
-	 * @return Id of the port associated to the module.
-	 */
-	virtual int assignPort(Module *);
-
-	/**
 	 * Prints the IDs of the packet's headers defined by UWNETBLOCKS.
 	 */
 	inline void
@@ -132,6 +137,37 @@ public:
 		std::cout << "PT_UWNETBLOCKS: \t\t" << PT_UWNETBLOCKS << std::endl;
 	}
 
+	/**
+	 * Cross-Layer messages synchronous interpreter.
+	 *
+	 * @param ClMessage* an instance of ClMessage that represent the message
+	 * received
+	 * @return <i>0</i> if successful.
+	 */
+	virtual int recvSyncClMsg(ClMessage *);
+
+	/**
+	 * Returns the next hop address of a packet passed as input.
+	 *
+	 * @param Packet* Packet to process.
+	 * @return IP of the next hop.
+	 */
+	virtual uint8_t getNextHop(const Packet *) const;
+
+	/**
+	 * Removes all the routing information.
+	 */
+	virtual void clearRoutes();
+
+	/**
+	 * Adds a new entry in the routing table.
+	 *
+	 * @param nsaddr_t Address of the destination.
+	 * @param nsaddr_t Address of the next hop.
+	 */
+	virtual void addRoute(const uint8_t &, const uint8_t &);
+
+	virtual int assignPort(Module *m);
 protected:
 	uint16_t portcounter; /**< Counter used to generate new port numbers. */
 	map<int, int> port_map; /**< Map: value = port;  key = id. */
@@ -160,6 +196,11 @@ protected:
 	{
 		return sizeof(hdr_uwnetblocks);
 	}
+
+private:
+	std::map<uint8_t, uint8_t>
+			routing_table; /**< Routing table: destination - next hop. */
+	uint8_t default_gateway; /**< Default gateway. */
 };
 
 #endif // _UWNETBLOCKS_H_
