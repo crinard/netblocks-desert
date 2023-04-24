@@ -136,7 +136,7 @@ UwUdp::recv(Packet *p, int idSrc)
 
 	if (!ch->error()) {
 		if (ch->direction() == hdr_cmn::UP) {
-			std::cout << "UwUdp: recv, idSrc = " << idSrc << '\n';
+			// std::cout << "UwUdp: recv, idSrc = " << idSrc << '\n';
 			map<int, int>::const_iterator iter = id_map.find(uwudp->dport());
 
 			if (iter == id_map.end()) { // Unknown Port Number

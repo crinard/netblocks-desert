@@ -301,11 +301,10 @@ UwCbrModule::sendPkt()
 	this->initPkt(p);
 	hdr_cmn *ch = hdr_cmn::access(p);
 	hdr_uwcbr *uwcbrh = HDR_UWCBR(p);
-	if (debug_ > 10)
-		printf("CbrModule(%d)::sendPkt, send a pkt (%d) with sn: %d\n",
-				getId(),
-				ch->uid(),
-				uwcbrh->sn());
+	printf("CbrModule(%d)::sendPkt, send a pkt (%d) with sn: %d\n",
+			getId(),
+			ch->uid(),
+			uwcbrh->sn());
 	sendDown(p, delay);
 }
 
@@ -318,11 +317,11 @@ UwCbrModule::sendPktLowPriority()
 	hdr_cmn *ch = hdr_cmn::access(p);
 	hdr_uwcbr *uwcbrh = HDR_UWCBR(p);
 	uwcbrh->priority() = 0;
-	if (debug_ > 10)
-		printf("CbrModule(%d)::sendPkt, send a pkt (%d) with sn: %d\n",
-				getId(),
-				ch->uid(),
-				uwcbrh->sn());
+	printf("CbrModule(%d)::sendPkt LOW PRIORITY, send a pkt (%d) with sn: %d\n",
+			getId(),
+			ch->uid(),
+			uwcbrh->sn());
+	
 	sendDown(p, delay);
 }
 
@@ -335,11 +334,10 @@ UwCbrModule::sendPktHighPriority()
 	hdr_cmn *ch = hdr_cmn::access(p);
 	hdr_uwcbr *uwcbrh = HDR_UWCBR(p);
 	uwcbrh->priority() = 1;
-	if (debug_ > 10)
-		printf("CbrModule(%d)::sendPkt, send a pkt (%d) with sn: %d\n",
-				getId(),
-				ch->uid(),
-				uwcbrh->sn());
+	printf("CbrModule(%d)::sendPkt HIGH PRIORITY, send a pkt (%d) with sn: %d\n",
+			getId(),
+			ch->uid(),
+			uwcbrh->sn());
 	sendDown(p, delay);
 }
 
@@ -368,10 +366,9 @@ UwCbrModule::recv(Packet *p)
 	hdr_cmn *ch = hdr_cmn::access(p);
 	hdr_uwip *uwiph = hdr_uwip::access(p);
 
-	if (debug_ > 10)
-		printf("CbrModule(%d)::recv(Packet*p,Handler*) pktId %d\n",
-				getId(),
-				ch->uid());
+	printf("CbrModule(%d)::recv(Packet*p,Handler*) pktId %d\n",
+			getId(),
+			ch->uid());
 
 	if (ch->ptype() != PT_UWCBR) {
 		drop(p, 1, UWCBR_DROP_REASON_UNKNOWN_TYPE);

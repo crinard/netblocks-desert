@@ -94,6 +94,8 @@ public:
 	TclObject *
 	create(int, const char *const *)
 	{
+		std::cerr << "MPHYSICAL CLASS" << std::endl;
+		assert(false);
 		return (new UnderwaterPhysical);
 	}
 } class_module_uwphysical;
@@ -211,6 +213,7 @@ UnderwaterPhysical::recv(Packet *p)
 	hdr_MPhy *ph = HDR_MPHY(p);
 
 	if (ch->direction() == hdr_cmn::UP) {
+		std::cout << "MPhy recv direction UP!" << std::endl;
 		ph->dstSpectralMask = getRxSpectralMask(p);
 		ph->dstPosition = getPosition();
 		ph->dstAntenna = getRxAntenna(p);
@@ -245,6 +248,7 @@ UnderwaterPhysical::recv(Packet *p)
 			Packet::free(p);
 		}
 	} else { // Direction DOWN
+		std::cout << "MPhy recv direction DOWN!" << std::endl;
 		assert(isOn);
 
 		ph->Pr = 0;
@@ -281,6 +285,7 @@ UnderwaterPhysical::recv(Packet *p)
 void
 UnderwaterPhysical::endTx(Packet *p)
 {
+	std::cout << "  UnderwaterPhysical()::endTx() " << std::endl;
 	hdr_cmn *ch = HDR_CMN(p);
 	hdr_MPhy *ph = HDR_MPHY(p);
 
@@ -295,6 +300,7 @@ UnderwaterPhysical::endTx(Packet *p)
 void
 UnderwaterPhysical::startRx(Packet *p)
 {
+	std::cout << "  UnderwaterPhysical()::startRx() " << std::endl;
 	hdr_mac *mach = HDR_MAC(p);
 	hdr_MPhy *ph = HDR_MPHY(p);
 
@@ -380,6 +386,7 @@ UnderwaterPhysical::startRx(Packet *p)
 
 void
 UnderwaterPhysical::endRx(Packet *p){
+	std::cout << "  UnderwaterPhysical()::endRx() " << std::endl;
 	hdr_cmn *ch = HDR_CMN(p);
 	hdr_MPhy *ph = HDR_MPHY(p);
 	hdr_mac *mach = HDR_MAC(p);
@@ -543,6 +550,7 @@ UnderwaterPhysical::getPER(double _snr, int _nbits, Packet *_p)
 
 int UnderwaterPhysical::recvSyncClMsg(ClMessage* m)
 {
+	std::cout << "  UnderwaterPhysical()::recvSyncClMsg()  type: " << m->type() << std::endl;
 	if (m->type() == CLMSG_UWPHY_LOSTPKT)
 	{	
 		int lost_packet = ((ClMsgUwPhyGetLostPkts*)m)->isControl() ?

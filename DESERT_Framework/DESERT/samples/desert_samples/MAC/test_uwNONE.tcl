@@ -39,9 +39,11 @@
 #
 # Stack of the nodes
 #   +-------------------------+
-#   |  6. UW/CBR              |
+#   |  7. UW/CBR              |
 #   +-------------------------+
-#   |  5, UW/NETBLOCKS        |
+#   |  6. UW/UDP              |
+#   +-------------------------+
+#   |  5. UW/STATICROUTING    |
 #   +-------------------------+
 #   |  4. UW/IP               |
 #   +-------------------------+
@@ -72,6 +74,7 @@ load libmphy.so
 load libmmac.so
 load libUwmStd.so
 load libuwip.so
+load libuwstaticrouting.so
 load libuwmll.so
 load libuwudp.so
 load libuwnetblocks.so
@@ -99,7 +102,7 @@ set opt(freq)               25000.0 ;#Frequency used in Hz
 set opt(bw)                 5000.0	;#Bandwidth used in Hz
 set opt(bitrate)            4800.0	;#bitrate in bps
 set opt(ack_mode)           "setNoAckMode"
-set opt(cbr_period) 60
+set opt(cbr_period) 120
 set opt(pktsize)	125
 set opt(rngstream)	1
 
@@ -160,32 +163,27 @@ Module/MPhy/BPSK  set TxPower_               $opt(txpower)
 ################################
 proc createNode { id } {
 
-    global channel propagation data_mask ns cbr position node netblocks portnum ipif channel_estimator
+    global channel propagation data_mask ns cbr position node udp portnum ipr ipif channel_estimator
     global phy posdb opt rvposx rvposy rvposz mhrouting mll mac woss_utilities woss_creator db_manager
     global node_coordinates
     
     set node($id) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
 	for {set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
-		set cbr($id,$cnt)  [new Module/UW/CBR]
-        # set netblocks($id,$cnt)  [new Module/UW/NETBLOCKS]
-    }
-    # set ipif($id) [new Module/UW/IP]
-    # set mll($id)  [new Module/UW/MLL] 
-    # set mac($id)  [new Module/UW/CSMA_ALOHA] 
+		set cbr($id,$cnt)  [new Module/UW/CBR] 
+	}
+    set mac($id)  [new Module/UW/CSMA_ALOHA] 
     set phy($id)  [new Module/MPhy/BPSK]  
 	
 	for {set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
 		$node($id) addModule 3 $cbr($id,$cnt)   1  "CBR"
-        # $node($id) addModule 2 $netblocks($id,$cnt)   1  "NETBLOCKS"
-    }
+	}
+    $node($id) addModule 2 $mac($id)   1  "MAC"
     $node($id) addModule 1 $phy($id)   1  "PHY"
 
 	for {set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
-		$node($id) setConnection $cbr($id,$cnt)   $netblocks($id,$cnt)   0
-    
-        # $node($id) setConnection $netblocks($id,$cnt)   $phy($id)   0
-        # set portnum($id,$cnt) [$netblocks($id,$cnt) assignPort $cbr($id,$cnt) ]
-    }
+		$node($id) setConnection $cbr($id,$cnt)   $mac($id)   0
+	}
+    $node($id) setConnection $mac($id)   $phy($id)   1
     $node($id) addToChannel  $channel    $phy($id)   1
 
     if {$id > 254} {
@@ -194,13 +192,12 @@ proc createNode { id } {
     }
     #Set the IP address of the node
     set ip_value [expr $id + 1]
-    $ipif($id) addr $ip_value
     
     set position($id) [new "Position/BM"]
     $node($id) addPosition $position($id)
     set posdb($id) [new "PlugIn/PositionDB"]
     $node($id) addPlugin $posdb($id) 20 "PDB"
-    $posdb($id) addpos [$ipif($id) addr] $position($id)
+    # $posdb($id) addpos [$ipif($id) addr] $position($id)
     
     #Setup positions
     $position($id) setX_ [expr $id*200]
@@ -234,13 +231,13 @@ for {set id 0} {$id < $opt(nn)} {incr id}  {
 # Inter-node module connection #
 ################################
 proc connectNodes {id1 des1} {
-    global portnum cbr cbr_sink opt 
+    global ipif ipr portnum cbr cbr_sink ipif_sink ipr_sink opt 
 
     # $cbr($id1,$des1) set destAddr_ [$ipif($des1) addr]
-    $cbr($id1,$des1) set destPort_ $portnum($des1,$id1)
+    # $cbr($id1,$des1) set destPort_ $portnum($des1,$id1)
 
     # $cbr($des1,$id1) set destAddr_ [$ipif($id1) addr]
-    $cbr($des1,$id1) set destPort_ $portnum($id1,$des1) 
+    # $cbr($des1,$id1) set destPort_ $portnum($id1,$des1) 
 
 }
 
@@ -253,30 +250,10 @@ for {set id1 0} {$id1 < $opt(nn)} {incr id1}  {
 	}
 }
 
-##################
-# ARP tables     #
-##################
-#for {set id1 0} {$id1 < $opt(nn)} {incr id1}  {
- #   for {set id2 0} {$id2 < $opt(nn)} {incr id2}  {
-  #    $mll($id1) addentry [$ipif($id2) addr] [$mac($id2) addr]
-	#}
-#}
-
-
-
-##################
-# Routing tables #
-##################
-#for {set id1 0} {$id1 < $opt(nn)} {incr id1}  {
-	# for {set id2 0} {$id2 < $opt(nn)} {incr id2}  {
-		#$netblocks($id1) addRoute [$ipif($id2) addr] [$ipif($id2) addr]
-	#}
-#}
-
 #Print the routing tables of the nodes
 #if {$opt(verbose)} {
 #	for {set id1 0} {$id1 < $opt(nn)} {incr id1}  {
-#		$netblocks($id1) printroutes
+#		$ipr($id1) printroutes
 #	}
 #}
 
@@ -304,7 +281,7 @@ proc finish {} {
     global ns opt outfile
     global mac propagation cbr_sink mac_sink phy_data phy_data_sink channel db_manager propagation
     global node_coordinates
-    global ipif netblocks cbr phy phy_data_sink
+    global ipr_sink ipr ipif udp cbr phy phy_data_sink
     global node_stats tmp_node_stats sink_stats tmp_sink_stats
     if ($opt(verbose)) {
         puts "---------------------------------------------------------------------"
@@ -340,9 +317,6 @@ proc finish {} {
         set sum_cbr_sent_pkts [expr $sum_cbr_sent_pkts + $cbr_sent_pkts]
         set sum_cbr_rcv_pkts  [expr $sum_cbr_rcv_pkts + $cbr_rcv_pkts]
     }
-        
-    set ipheadersize        [$ipif(1) getipheadersize]
-    set netblocksheadersize       [$netblocks(1,0) getnetblocksheadersize]
     set cbrheadersize       [$cbr(1,0) getcbrheadersize]
     
     if ($opt(verbose)) {
@@ -350,8 +324,8 @@ proc finish {} {
         puts "Sent Packets             : $sum_cbr_sent_pkts"
         puts "Received Packets         : $sum_cbr_rcv_pkts"
         puts "Packet Delivery Ratio    : [expr $sum_cbr_rcv_pkts / $sum_cbr_sent_pkts * 100]"
-        puts "IP Pkt Header Size       : $ipheadersize"
-        puts "NETBLOCKS Header Size          : $netblocksheadersize"
+        # puts "IP Pkt Header Size       : $ipheadersize"
+        # puts "UDP Header Size          : $udpheadersize"
         puts "CBR Header Size          : $cbrheadersize"
         puts "done!"
     }
