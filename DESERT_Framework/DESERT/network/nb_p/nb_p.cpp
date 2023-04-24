@@ -52,33 +52,6 @@ Nb_pModule::clearRoutes()
 	routing_table.clear();
 }
 
-void
-Nb_pModule::addRoute(const uint8_t &dst, const uint8_t &next)
-{
-	// if (dst == 0 || next == 0) {
-	// 	std::cerr << "You are trying to insert an invalid entry in the routing "
-	// 				 "table with destination: "
-	// 			  << static_cast<uint32_t>(dst)
-	// 			  << " and next hop: " << static_cast<uint32_t>(next)
-	// 			  << std::endl;
-	// 	exit(EXIT_FAILURE);
-	// }
-	// std::map<uint8_t, uint8_t>::iterator it = routing_table.find(dst);
-	// if (it != routing_table.end()) {
-	// 	it->second = next;
-	// 	return;
-	// } else {
-	// 	if (routing_table.size() < IP_ROUTING_MAX_ROUTES) {
-	// 		routing_table.insert(std::pair<uint8_t, uint8_t>(dst, next));
-	// 		return;
-	// 	} else {
-	// 		std::cerr << "The routing table is full!" << std::endl;
-	// 		return;
-	// 	}
-	// }
-	return;
-}
-
 int
 Nb_pModule::command(int argc, const char *const *argv)
 {
@@ -128,28 +101,4 @@ Nb_pModule::recv(Packet *p)
 	// 	}
 	// }
 	return;
-}
-
-uint8_t
-Nb_pModule::getNextHop(const Packet *p) const
-{
-	// hdr_uwip *uwiph = HDR_UWIP(p);
-	// return getNextHop(uwiph->daddr());
-	return 0;
-}
-
-uint8_t
-Nb_pModule::getNextHop(const uint8_t &dst) const
-{
-	// std::map<uint8_t, uint8_t>::const_iterator it = routing_table.find(dst);
-	// if (it != routing_table.end()) {
-	// 	return it->second;
-	// } else {
-	// 	if (default_gateway != 0) {
-	// 		return default_gateway;
-	// 	} else {
-	// 		return 0;
-	// 	}
-	// }
-	return 0;
 }

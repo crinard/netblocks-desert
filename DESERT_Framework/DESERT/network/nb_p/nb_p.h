@@ -63,33 +63,9 @@ public:
 	virtual int command(int, const char *const *);
 
 	/**
-	 * Returns the next hop address of a packet passed as input.
-	 *
-	 * @param Packet* Packet to process.
-	 * @return IP of the next hop.
-	 */
-	virtual uint8_t getNextHop(const Packet *) const;
-
-	/**
-	 * Returns the next hop address of an address passed as input.
-	 *
-	 * @param nsaddr_t Address to process.
-	 * @return IP of the next hop.
-	 */
-	virtual uint8_t getNextHop(const uint8_t &) const;
-
-	/**
 	 * Removes all the routing information.
 	 */
 	virtual void clearRoutes();
-
-	/**
-	 * Adds a new entry in the routing table.
-	 *
-	 * @param nsaddr_t Address of the destination.
-	 * @param nsaddr_t Address of the next hop.
-	 */
-	virtual void addRoute(const uint8_t &, const uint8_t &);
 
 private:
 	std::map<uint8_t, uint8_t>
