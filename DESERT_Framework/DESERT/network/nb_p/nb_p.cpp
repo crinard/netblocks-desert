@@ -33,7 +33,6 @@ public:
 Nb_pModule::Nb_pModule()
 	: default_gateway(0)
 {
-	clearRoutes();
 }
 
 Nb_pModule::~Nb_pModule()
@@ -44,12 +43,6 @@ int
 Nb_pModule::recvSyncClMsg(ClMessage *m)
 {
 	return Module::recvSyncClMsg(m);
-}
-
-void
-Nb_pModule::clearRoutes()
-{
-	routing_table.clear();
 }
 
 int

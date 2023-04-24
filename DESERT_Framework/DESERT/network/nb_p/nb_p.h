@@ -62,14 +62,7 @@ public:
 	 */
 	virtual int command(int, const char *const *);
 
-	/**
-	 * Removes all the routing information.
-	 */
-	virtual void clearRoutes();
-
 private:
-	std::map<uint8_t, uint8_t>
-			routing_table; /**< Routing table: destination - next hop. */
 	uint8_t default_gateway; /**< Default gateway. */
 };
 
