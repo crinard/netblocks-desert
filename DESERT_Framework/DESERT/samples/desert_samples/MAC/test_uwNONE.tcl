@@ -78,6 +78,7 @@ load libuwstaticrouting.so
 load libuwmll.so
 load libuwudp.so
 load libuwnetblocks.so
+load libnb_p.so
 load libuwcbr.so
 load libuwcsmaaloha.so
 
@@ -171,18 +172,21 @@ proc createNode { id } {
 	for {set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
 		set cbr($id,$cnt)  [new Module/UW/CBR] 
 	}
+    set prnt($id)  [new Module/UW/Nb_p]
     set mac($id)  [new Module/UW/CSMA_ALOHA] 
     set phy($id)  [new Module/MPhy/BPSK]  
 	
 	for {set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
-		$node($id) addModule 3 $cbr($id,$cnt)   1  "CBR"
+		$node($id) addModule 4 $cbr($id,$cnt)   1  "CBR"
 	}
+    $node($id) addModule 3 $prnt($id)   1  "PRNT"
     $node($id) addModule 2 $mac($id)   1  "MAC"
     $node($id) addModule 1 $phy($id)   1  "PHY"
 
 	for {set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
-		$node($id) setConnection $cbr($id,$cnt)   $mac($id)   0
+		$node($id) setConnection $cbr($id,$cnt)   $prnt($id)   0
 	}
+    $node($id) setConnection $prnt($id)   $mac($id)   0
     $node($id) setConnection $mac($id)   $phy($id)   1
     $node($id) addToChannel  $channel    $phy($id)   1
 

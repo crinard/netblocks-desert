@@ -9,7 +9,7 @@
 #define DROP_DEST_NO_ROUTE \
 	"DNR" /**< Reason for a drop in a <i>UWVBR</i> module. */
 
-#include <uwip-module.h>
+#include <module.h>
 #include <map>
 
 namespace
@@ -21,7 +21,7 @@ static const uint16_t IP_ROUTING_MAX_ROUTES =
 /**
  * Nb_pModule class implements basic routing functionalities.
  */
-class Nb_pModule : public UWIPModule
+class Nb_pModule : public Module
 {
 public:
 	/**
