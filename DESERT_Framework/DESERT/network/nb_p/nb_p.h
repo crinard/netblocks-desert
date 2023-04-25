@@ -14,7 +14,7 @@
 #include <map>
 #include <vector>
 
-#include "net-blocks/nb_runtime.h"
+#include "net-blocks/runtime/nb_runtime.h"
 
 namespace
 {
