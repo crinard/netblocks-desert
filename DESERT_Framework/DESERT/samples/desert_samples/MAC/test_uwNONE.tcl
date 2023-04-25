@@ -39,15 +39,7 @@
 #
 # Stack of the nodes
 #   +-------------------------+
-#   |  7. UW/CBR              |
-#   +-------------------------+
-#   |  6. UW/UDP              |
-#   +-------------------------+
-#   |  5. UW/STATICROUTING    |
-#   +-------------------------+
-#   |  4. UW/IP               |
-#   +-------------------------+
-#   |  3. UW/MLL              |
+#   |  3. UW/nb_p             |
 #   +-------------------------+
 #   |  2. UW/CSMA_ALOHA       |
 #   +-------------------------+
@@ -152,10 +144,10 @@ $data_mask setBandwidth  $opt(bw)
 #########################
 # Module Configuration  #
 #########################
-Module/UW/CBR set packetSize_          $opt(pktsize)
-Module/UW/CBR set period_              $opt(cbr_period)
-Module/UW/CBR set PoissonTraffic_      1
-Module/UW/CBR set debug_               0
+# Module/UW/CBR set packetSize_          $opt(pktsize)
+# Module/UW/CBR set period_              $opt(cbr_period)
+# Module/UW/CBR set PoissonTraffic_      1
+# Module/UW/CBR set debug_               0
 
 Module/MPhy/BPSK  set TxPower_               $opt(txpower)
 
@@ -164,28 +156,21 @@ Module/MPhy/BPSK  set TxPower_               $opt(txpower)
 ################################
 proc createNode { id } {
 
-    global channel propagation data_mask ns cbr position node udp portnum ipr ipif channel_estimator
+    global channel propagation data_mask ns cbr position node udp portnum ipr ipif channel_estimator prnt
     global phy posdb opt rvposx rvposy rvposz mhrouting mll mac woss_utilities woss_creator db_manager
     global node_coordinates
     
     set node($id) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
-	for {set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
-		set cbr($id,$cnt)  [new Module/UW/CBR] 
-	}
+
     set prnt($id)  [new Module/UW/Nb_p]
     set mac($id)  [new Module/UW/CSMA_ALOHA] 
     set phy($id)  [new Module/MPhy/BPSK]  
 	
-	for {set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
-		$node($id) addModule 4 $cbr($id,$cnt)   1  "CBR"
-	}
+
     $node($id) addModule 3 $prnt($id)   1  "PRNT"
     $node($id) addModule 2 $mac($id)   1  "MAC"
     $node($id) addModule 1 $phy($id)   1  "PHY"
 
-	for {set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
-		$node($id) setConnection $cbr($id,$cnt)   $prnt($id)   0
-	}
     $node($id) setConnection $prnt($id)   $mac($id)   0
     $node($id) setConnection $mac($id)   $phy($id)   1
     $node($id) addToChannel  $channel    $phy($id)   1
@@ -269,12 +254,8 @@ for {set id1 0} {$id1 < $opt(nn)} {incr id1}  {
 # Set here the timers to start and/or stop modules (optional)
 # e.g., 
 for {set id1 0} {$id1 < $opt(nn)} {incr id1}  {
-	for {set id2 0} {$id2 < $opt(nn)} {incr id2} {
-		if {$id1 != $id2} {
-			$ns at $opt(starttime)    "$cbr($id1,$id2) start"
-			$ns at $opt(stoptime)     "$cbr($id1,$id2) stop"
-		}
-	}
+    $ns at $opt(starttime)    "$prnt($id1) start"
+    $ns at $opt(stoptime)     "$prnt($id1) stop"
 }
 
 ###################
@@ -283,16 +264,16 @@ for {set id1 0} {$id1 < $opt(nn)} {incr id1}  {
 # Define here the procedure to call at the end of the simulation
 proc finish {} {
     global ns opt outfile
-    global mac propagation cbr_sink mac_sink phy_data phy_data_sink channel db_manager propagation
+    global mac propagation cbr_sink mac_sink phy_data phy_data_sink channel db_manager propagation prnt
     global node_coordinates
-    global ipr_sink ipr ipif udp cbr phy phy_data_sink
+    global ipr_sink ipr ipif udp cbr phy phy_data_sink prnt
     global node_stats tmp_node_stats sink_stats tmp_sink_stats
     if ($opt(verbose)) {
         puts "---------------------------------------------------------------------"
         puts "Simulation summary"
         puts "number of nodes  : $opt(nn)"
         puts "packet size      : $opt(pktsize) byte"
-        puts "cbr period       : $opt(cbr_period) s"
+        puts "app_period       : $opt(app_period) s"
         puts "number of nodes  : $opt(nn)"
         puts "simulation length: $opt(txduration) s"
         puts "tx power         : $opt(txpower) dB"
@@ -301,38 +282,30 @@ proc finish {} {
         puts "bitrate          : $opt(bitrate) bps"
         puts "---------------------------------------------------------------------"
     }
-    set sum_cbr_throughput     0
+    set sum_throughput     0
     set sum_per                0
-    set sum_cbr_sent_pkts      0.0
-    set sum_cbr_rcv_pkts       0.0    
+    set sum_sent_pkts      0.0
+    set sum_rcv_pkts       0.0    
 
     for {set i 0} {$i < $opt(nn)} {incr i}  {
-		for {set j 0} {$j < $opt(nn)} {incr j} {
-			set cbr_throughput           [$cbr($i,$j) getthr]
-			if {$i != $j} {
-				set cbr_sent_pkts        [$cbr($i,$j) getsentpkts]
-				set cbr_rcv_pkts           [$cbr($i,$j) getrecvpkts]
-			}
-			if ($opt(verbose)) {
-				puts "cbr($i,$j) throughput                    : $cbr_throughput"
-			}
-		}
-        set sum_cbr_throughput [expr $sum_cbr_throughput + $cbr_throughput]
-        set sum_cbr_sent_pkts [expr $sum_cbr_sent_pkts + $cbr_sent_pkts]
-        set sum_cbr_rcv_pkts  [expr $sum_cbr_rcv_pkts + $cbr_rcv_pkts]
+        set throughput           [$prnt($i) getthroughput]
+        set sent_pkts        [$prnt($i) getsentpkts]
+        set rcv_pkts           [$prnt($i) getrecvpkts]
+        set sum_throughput [expr $sum_throughput + $throughput]
+        set sum_sent_pkts [expr $sum_sent_pkts + $sent_pkts]
+        set sum_rcv_pkts  [expr $sum_rcv_pkts + $rcv_pkts]
     }
-    set cbrheadersize       [$cbr(1,0) getcbrheadersize]
     
-    if ($opt(verbose)) {
-        puts "Mean Throughput          : [expr ($sum_cbr_throughput/(($opt(nn))*($opt(nn)-1)))]"
-        puts "Sent Packets             : $sum_cbr_sent_pkts"
-        puts "Received Packets         : $sum_cbr_rcv_pkts"
-        puts "Packet Delivery Ratio    : [expr $sum_cbr_rcv_pkts / $sum_cbr_sent_pkts * 100]"
-        # puts "IP Pkt Header Size       : $ipheadersize"
-        # puts "UDP Header Size          : $udpheadersize"
-        puts "CBR Header Size          : $cbrheadersize"
-        puts "done!"
-    }
+    #if ($opt(verbose)) {
+    #    puts "Mean Throughput          : [expr ($sum_cbr_throughput/(($opt(nn))*($opt(nn)-1)))]"
+    #    puts "Sent Packets             : $sum_cbr_sent_pkts"
+    #    puts "Received Packets         : $sum_cbr_rcv_pkts"
+    #    puts "Packet Delivery Ratio    : [expr $sum_cbr_rcv_pkts / $sum_cbr_sent_pkts * 100]"
+    #    # puts "IP Pkt Header Size       : $ipheadersize"
+    #    # puts "UDP Header Size          : $udpheadersize"
+    #    puts "CBR Header Size          : $cbrheadersize"
+    #    puts "done!"
+    #}
     
     $ns flush-trace
     close $opt(tracefile)

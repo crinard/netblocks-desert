@@ -30,68 +30,94 @@ public:
 	}
 } class_nb_p_module;
 
-Nb_pModule::Nb_pModule()
-	: default_gateway(0)
-{
-}
+Nb_pModule::Nb_pModule():chkTimerPeriod(this){}
 
-Nb_pModule::~Nb_pModule()
-{
-}
+Nb_pModule::~Nb_pModule(){}
 
-int
-Nb_pModule::recvSyncClMsg(ClMessage *m)
+int Nb_pModule::recvSyncClMsg(ClMessage *m)
 {
 	return Module::recvSyncClMsg(m);
 }
 
-int
-Nb_pModule::command(int argc, const char *const *argv)
+int Nb_pModule::command(int argc, const char *const *argv)
 {
 	Tcl &tcl = Tcl::instance();
-	
+	if (argc == 2) {
+		if (strcasecmp(argv[1], "start") == 0) {
+			start_gen();
+			return TCL_OK;
+		} else if (strcasecmp(argv[1], "stop") == 0) {
+			stop_gen();
+			return TCL_OK;
+		} else if (strcasecmp(argv[1], "getsentpkts") == 0) {
+			tcl.resultf("%f", getSentPkts());
+			return TCL_OK;
+		} else if (strcasecmp(argv[1], "getrecvpkts") == 0) {
+			tcl.resultf("%f", getRecvPkts());
+			return TCL_OK;
+		} else if (strcasecmp(argv[1], "getdroppkts") == 0) {
+			tcl.resultf("%f", getDropPkts());
+			return TCL_OK;
+		} else if (strcasecmp(argv[1], "getdelay") == 0) {
+			tcl.resultf("%f", getDelay());
+			return TCL_OK;
+		} else if (strcasecmp(argv[1], "getthroughput") == 0) {
+			tcl.resultf("%f", getThroughput());
+			return TCL_OK;
+		} else if (strcasecmp(argv[1], "getheadersize") == 0) {
+			tcl.resultf("%f", getHeaderSize());
+			return TCL_OK;
+		}
+	}
 	return Module::command(argc, argv);
 }
 
-void
-Nb_pModule::recv(Packet *p)
+void Nb_pModule::recv(Packet *p)
 {
-	// std::cout << "NB_P::RECV" << std::endl;
 	hdr_cmn *ch = HDR_CMN(p);
 	std::cout << "NB_P::RECV::DIRECTION::" << ch->direction() << std::endl;
-	// hdr_uwip *uwiph = HDR_UWIP(p);
-
-	// if (debug_) {
-	// 	std::cout << NOW << "::NB_P::RECV"
-	// 			  << "::NEXT_HOP::" << ch->next_hop()
-	// 			  << "::DESTINATION_IP::" << (uint)uwiph->daddr()
-	// 			  << std::endl;
-	// }
-
-	// if (ch->direction() == hdr_cmn::UP) {
-
-	// 	if (uwiph->daddr() == ch->next_hop() ||
-	// 			uwiph->daddr() ==
-	// 					UWIP_BROADCAST) { /* Packet is arrived at its
-	// 										 destination */
-	// 		sendUp(p);
-	// 		return;
-	// 	}
-	// 	/* Forward Packet */
-	// 	ch->direction() = hdr_cmn::DOWN;
-	// 	ch->next_hop() = getNextHop(p);
-	// 	if (ch->next_hop() == 0) {
-	// 		drop(p, 1, DROP_DEST_NO_ROUTE);
-	// 	} else {
-	// 		sendDown(p);
-	// 	}
-	// } else { /* direction DOWN */
-	// 	ch->next_hop() = getNextHop(p);
-	// 	if (ch->next_hop() == 0) {
-	// 		drop(p, 1, DROP_DEST_NO_ROUTE);
-	// 	} else {
-	// 		sendDown(p);
-	// 	}
-	// }
+	
 	return;
+}
+
+void Nb_pModule::start_gen(void) {
+	chkTimerPeriod.resched(120.0);
+}
+
+void Nb_pModule::stop_gen(void) {
+	chkTimerPeriod.force_cancel();
+}
+
+void Nb_pModule::uwSendTimerAppl::expire(Event *e)
+{
+	m_->sendPkt();
+	m_->chkTimerPeriod.resched(120.0); // schedule next transmission
+}
+
+void Nb_pModule::sendPkt(void) {
+	Packet *p = Packet::alloc();
+	hdr_cmn *ch = hdr_cmn::access(p);
+	// incrPktSent();
+
+	ch->timestamp() = Scheduler::instance().clock();
+	sendDown(p,0);
+}
+
+double Nb_pModule::getSentPkts(void) {
+	return 0.0;
+}
+double Nb_pModule::getRecvPkts(void) {
+	return 0.0;
+}
+double Nb_pModule::getDropPkts(void) {
+	return 0.0;
+}
+double Nb_pModule::getDelay(void) {
+	return 0.0;
+}
+double Nb_pModule::getThroughput(void) {
+	return 0.0;
+}
+double Nb_pModule::getHeaderSize(void) {
+	return 0.0;
 }

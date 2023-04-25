@@ -10,6 +10,7 @@
 	"DNR" /**< Reason for a drop in a <i>UWVBR</i> module. */
 
 #include <module.h>
+#include <packet.h>
 #include <map>
 
 namespace
@@ -61,9 +62,39 @@ public:
 	 *
 	 */
 	virtual int command(int, const char *const *);
+protected:
+	// Timers for sending, TODO: Make netblocks timers here. 
+	class uwSendTimerAppl : public TimerHandler
+	{
+	public:
+		uwSendTimerAppl(Nb_pModule *m)
+			: TimerHandler()
+		{
+			m_ = m;
+		}
 
-private:
-	uint8_t default_gateway; /**< Default gateway. */
+		virtual ~uwSendTimerAppl()
+		{
+		}
+
+	protected:
+		virtual void expire(Event *e);
+		Nb_pModule *m_;
+	}; // End uwSendTimer class
+
+	// Functions to start and stop generation
+	virtual void start_gen(void);
+	virtual void stop_gen(void);
+
+	virtual void sendPkt(void);
+	// Reporting functions
+	virtual double getSentPkts(void);
+	virtual double getRecvPkts(void);
+	virtual double getDropPkts(void);
+	virtual double getDelay(void);
+	virtual double getThroughput(void);
+	virtual double getHeaderSize(void);
+	uwSendTimerAppl chkTimerPeriod;
 };
 
 #endif // _NB_P_H_

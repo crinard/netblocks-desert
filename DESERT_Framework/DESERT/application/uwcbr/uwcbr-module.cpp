@@ -261,6 +261,8 @@ UwCbrModule::initPkt(Packet *p)
 	ch->uid() = uidcnt_++;
 	ch->ptype() = PT_UWCBR;
 	ch->size() = pktSize_;
+	// TODO: use netblocks send functions. When you create connection, use netblocks. Just set payload and protocol.
+	
 
 	hdr_uwip *uwiph = hdr_uwip::access(p);
 	uwiph->daddr() = dstAddr_;
@@ -271,7 +273,6 @@ UwCbrModule::initPkt(Packet *p)
 
 	hdr_uwnetblocks *uwnetblocks = hdr_uwnetblocks::access(p);
 	uwnetblocks->dport() = dstPort_;
-	// std::cout << "REEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 	
 	hdr_uwcbr *uwcbrh = HDR_UWCBR(p);
 	uwcbrh->sn() = txsn++;
