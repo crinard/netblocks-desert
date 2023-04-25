@@ -46,7 +46,8 @@ TESTS =
 
 libnb_p_la_SOURCES = initlib.cpp\
     nb_p-default.tcl\
-    nb_p.cpp
+    nb_p.cpp\
+    
 
 libnb_p_la_CPPFLAGS = @NS_CPPFLAGS@ @NSMIRACLE_CPPFLAGS@ @DESERT_CPPFLAGS@
 libnb_p_la_LDFLAGS =  @NS_LDFLAGS@ @NSMIRACLE_LDFLAGS@ @DESERT_LDFLAGS@

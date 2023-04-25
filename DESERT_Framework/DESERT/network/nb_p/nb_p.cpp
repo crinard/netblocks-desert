@@ -30,9 +30,19 @@ public:
 	}
 } class_nb_p_module;
 
-Nb_pModule::Nb_pModule():chkTimerPeriod(this){}
+Nb_pModule::Nb_pModule():chkTimerPeriod(this), chkNetBlocksTimer(this) {
+	nb__ipc_init();
+	nb__net_init();
+	memcpy(nb__my_host_id, server_id, 6);
 
-Nb_pModule::~Nb_pModule(){}
+	nb__connection_t * conn = nb__establish(client_id, 8081, 8080, );
+	chkNetBlocksTimer.resched(10.0);
+}
+
+Nb_pModule::~Nb_pModule(){
+	nb__destablish(conn);
+	chkNetBlocksTimer.force_cancel();
+}
 
 int Nb_pModule::recvSyncClMsg(ClMessage *m)
 {
@@ -76,7 +86,12 @@ void Nb_pModule::recv(Packet *p)
 {
 	hdr_cmn *ch = HDR_CMN(p);
 	std::cout << "NB_P::RECV::DIRECTION::" << ch->direction() << std::endl;
-	
+	if(ch->direction() != hdr_cmn::UP) {
+		std::cerr << "Something weird here, packet direction is not UP" << std::endl;
+	} else {
+		// Add to netblocks buffer.
+		pktBuffer.push_back(p);
+	}
 	return;
 }
 
@@ -90,11 +105,18 @@ void Nb_pModule::stop_gen(void) {
 
 void Nb_pModule::uwSendTimerAppl::expire(Event *e)
 {
-	m_->sendPkt();
+	m_->sendPkt(); //TODO: This packet/video sending should be seperate from the 
 	m_->chkTimerPeriod.resched(120.0); // schedule next transmission
 }
 
+void Nb_pModule::uwNetBlocksTimer::expire(Event *e)
+{
+	nb__main_loop_step();
+	m_->chkNetBlocksTimer.resched(10); // schedule next transmission
+}
+
 void Nb_pModule::sendPkt(void) {
+
 	Packet *p = Packet::alloc();
 	hdr_cmn *ch = hdr_cmn::access(p);
 	// incrPktSent();

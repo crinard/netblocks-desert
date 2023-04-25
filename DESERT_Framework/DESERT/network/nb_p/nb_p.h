@@ -12,6 +12,9 @@
 #include <module.h>
 #include <packet.h>
 #include <map>
+#include <vector>
+
+#include "net-blocks/nb_runtime.h"
 
 namespace
 {
@@ -62,6 +65,8 @@ public:
 	 *
 	 */
 	virtual int command(int, const char *const *);
+
+	virtual vector<Packet*> getNBReadBuffer(void);
 protected:
 	// Timers for sending, TODO: Make netblocks timers here. 
 	class uwSendTimerAppl : public TimerHandler
@@ -95,6 +100,9 @@ protected:
 	virtual double getThroughput(void);
 	virtual double getHeaderSize(void);
 	uwSendTimerAppl chkTimerPeriod;
+	uwSendTimerAppl chkNetBlocksTimer;
+	vector<Packet *> pktBuffer;
+	nb__connection_t * conn;
 };
 
 #endif // _NB_P_H_

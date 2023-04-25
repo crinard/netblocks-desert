@@ -1,0 +1,3 @@
+[submodule "DESERT_Framework/DESERT/network/nb_p/net-blocks"]
+	path = DESERT_Framework/DESERT/network/nb_p/net-blocks
+	url = git@github.com:crinard/net-blocks.git
