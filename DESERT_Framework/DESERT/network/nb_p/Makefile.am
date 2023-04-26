@@ -47,11 +47,13 @@ TESTS =
 libnb_p_la_SOURCES = initlib.cpp\
     nb_p-default.tcl\
     nb_p.cpp\
-    net-blocks/
-    
+    net-blocks/runtime/nb_desert_transport.cc\
 
-libnb_p_la_CPPFLAGS = @NS_CPPFLAGS@ @NSMIRACLE_CPPFLAGS@ @DESERT_CPPFLAGS@
-libnb_p_la_LDFLAGS =  @NS_LDFLAGS@ @NSMIRACLE_LDFLAGS@ @DESERT_LDFLAGS@
+libnb_p_la_CPPFLAGS = @NS_CPPFLAGS@ @NSMIRACLE_CPPFLAGS@ @DESERT_CPPFLAGS@ -I/home/chris/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/net-blocks/scratch/
+libnb_p_la_LDFLAGS =  @NS_LDFLAGS@ @NSMIRACLE_LDFLAGS@ @DESERT_LDFLAGS@ -L/home/chris/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/net-blocks/build -lnetblocks 
+
+# TODO: Add -L /home/netblcoks/build -lnetblocks #should be named libnetbloks.a -- should come at the end.
+# Also -I the header files for netblocks 
 libnb_p_la_LIBADD = @NS_LIBADD@ @NSMIRACLE_LIBADD@ @DESERT_LIBADD@
 
 nodist_libnb_p_la_SOURCES = InitTcl.cc

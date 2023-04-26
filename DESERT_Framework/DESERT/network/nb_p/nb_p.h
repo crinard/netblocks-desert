@@ -13,6 +13,7 @@
 #include <packet.h>
 #include <map>
 #include <vector>
+#include <stdint.h> 
 
 #include "net-blocks/runtime/nb_runtime.h"
 
@@ -66,7 +67,10 @@ public:
 	 */
 	virtual int command(int, const char *const *);
 
-	virtual vector<Packet*> getNBReadBuffer(void);
+	virtual std::vector<Packet*> getNBReadBuffer(void);
+	static inline void sendDown(Packet* p, double delay) {
+		sendDown(p, delay);
+	}
 protected:
 	// Timers for sending, TODO: Make netblocks timers here. 
 	class uwSendTimerAppl : public TimerHandler
@@ -101,7 +105,7 @@ protected:
 	virtual double getHeaderSize(void);
 	uwSendTimerAppl chkTimerPeriod;
 	uwSendTimerAppl chkNetBlocksTimer;
-	vector<Packet *> pktBuffer;
+	std::vector<Packet *> pktBuffer;
 	nb__connection_t * conn;
 };
 

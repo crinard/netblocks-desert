@@ -29,13 +29,25 @@ public:
 		return (new Nb_pModule);
 	}
 } class_nb_p_module;
+int running = 1;
+static void callback(int event, nb__connection_t * c) {
+	if (event == QUEUE_EVENT_READ_READY) {
+		char buff[65];
+		int len = nb__read(c, buff, 64);
+		buff[len] = 0;	
+		printf("Received = %s\n", buff);	
+		running = 0;
+	}
+}
 
 Nb_pModule::Nb_pModule():chkTimerPeriod(this), chkNetBlocksTimer(this) {
-	nb__ipc_init();
+	nb__desert_init((void*)this);
 	nb__net_init();
+	char server_id[] = {0, 0, 0, 0, 0, 1};
+
 	memcpy(nb__my_host_id, server_id, 6);
 
-	nb__connection_t * conn = nb__establish(client_id, 8081, 8080, );
+	conn = nb__establish(0, 8081, 8080, callback);
 	chkNetBlocksTimer.resched(10.0);
 }
 
@@ -109,11 +121,11 @@ void Nb_pModule::uwSendTimerAppl::expire(Event *e)
 	m_->chkTimerPeriod.resched(120.0); // schedule next transmission
 }
 
-void Nb_pModule::uwNetBlocksTimer::expire(Event *e)
-{
-	nb__main_loop_step();
-	m_->chkNetBlocksTimer.resched(10); // schedule next transmission
-}
+// void Nb_pModule::uwNetBlocksTimer::expire(Event *e)
+// {
+// 	nb__main_loop_step();
+// 	m_->chkNetBlocksTimer.resched(10); // schedule next transmission
+// }
 
 void Nb_pModule::sendPkt(void) {
 
