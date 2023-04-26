@@ -11,6 +11,9 @@
 #include <iostream>
 
 #include "nb_p.h"
+#include "net-blocks/runtime/nb_runtime.h"
+
+// extern char nb__my_host_id[];
 
 /**
  * Adds the module for Nb_pModuleClass in ns2.
@@ -26,6 +29,7 @@ public:
 	TclObject *
 	create(int, const char *const *)
 	{
+		// std::cout << 
 		return (new Nb_pModule);
 	}
 } class_nb_p_module;
@@ -45,7 +49,7 @@ Nb_pModule::Nb_pModule():chkTimerPeriod(this), chkNetBlocksTimer(this) {
 	nb__net_init();
 	char server_id[] = {0, 0, 0, 0, 0, 1};
 
-	memcpy(nb__my_host_id, server_id, 6);
+	// memcpy(nb__my_host_id, server_id, 6);
 
 	conn = nb__establish(0, 8081, 8080, callback);
 	chkNetBlocksTimer.resched(10.0);
@@ -102,7 +106,8 @@ void Nb_pModule::recv(Packet *p)
 		std::cerr << "Something weird here, packet direction is not UP" << std::endl;
 	} else {
 		// Add to netblocks buffer.
-		pktBuffer.push_back(p);
+		// pktBuffer.push_back(p);
+		std::cout << "recv" << std::endl;
 	}
 	return;
 }
@@ -132,7 +137,7 @@ void Nb_pModule::sendPkt(void) {
 	Packet *p = Packet::alloc();
 	hdr_cmn *ch = hdr_cmn::access(p);
 	// incrPktSent();
-
+    nb__main_loop_step();
 	ch->timestamp() = Scheduler::instance().clock();
 	sendDown(p,0);
 }

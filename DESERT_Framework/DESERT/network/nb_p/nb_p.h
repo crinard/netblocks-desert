@@ -16,6 +16,8 @@
 #include <stdint.h> 
 
 #include "net-blocks/runtime/nb_runtime.h"
+#include "net-blocks/scratch/gen_headers.h"
+
 
 namespace
 {
@@ -67,7 +69,7 @@ public:
 	 */
 	virtual int command(int, const char *const *);
 
-	virtual std::vector<Packet*> getNBReadBuffer(void);
+	// virtual std::vector<Packet*> getNBReadBuffer(void);
 	static inline void sendDown(Packet* p, double delay) {
 		sendDown(p, delay);
 	}
@@ -105,7 +107,7 @@ protected:
 	virtual double getHeaderSize(void);
 	uwSendTimerAppl chkTimerPeriod;
 	uwSendTimerAppl chkNetBlocksTimer;
-	std::vector<Packet *> pktBuffer;
+	// std::vector<Packet *> pktBuffer;
 	nb__connection_t * conn;
 };
 
