@@ -9,8 +9,8 @@
 #define DROP_DEST_NO_ROUTE \
 	"DNR" /**< Reason for a drop in a <i>UWVBR</i> module. */
 
-#include <module.h>
-#include <packet.h>
+#include "module.h"
+#include "packet.h"
 #include <map>
 #include <vector>
 #include <stdint.h> 

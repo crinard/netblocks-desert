@@ -26,6 +26,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# export LD_DEBUG all
 AM_CXXFLAGS = -pedantic -Wall \
     -Wno-missing-braces -Wextra -Wformat=2 \
     -Wswitch-default -Wswitch-enum -Wcast-align -Wpointer-arith \
@@ -35,7 +36,8 @@ AM_CXXFLAGS = -pedantic -Wall \
     -Wno-write-strings \
     -ggdb3 \
     -O0 \
-    -lm
+    -lm \
+    -fPIC
 
 lib_LTLIBRARIES = libnb_p.la
 check_PROGRAMS = 
