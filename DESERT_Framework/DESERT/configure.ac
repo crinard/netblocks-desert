@@ -63,6 +63,8 @@ DESERT_CPPFLAGS="$DESERT_CPPFLAGS "'-I$(top_srcdir)/transport/uwnetblocks'
 DESERT_CPPFLAGS="$DESERT_CPPFLAGS "'-I$(top_srcdir)/network/uwsun'
 DESERT_CPPFLAGS="$DESERT_CPPFLAGS "'-I$(top_srcdir)/network/uwstaticrouting'
 DESERT_CPPFLAGS="$DESERT_CPPFLAGS "'-I$(top_srcdir)/network/nb_p'
+DESERT_CPPFLAGS="$DESERT_CPPFLAGS "'-I$(top_srcdir)/network/nb_p/net-blocks/runtime'
+DESERT_CPPFLAGS="$DESERT_CPPFLAGS "'-I$(top_srcdir)/network/nb_p/net-blocks/scratch'
 DESERT_CPPFLAGS="$DESERT_CPPFLAGS "'-I$(top_srcdir)/network/uwflooding'
 DESERT_CPPFLAGS="$DESERT_CPPFLAGS "'-I$(top_srcdir)/network/uwicrp'
 DESERT_CPPFLAGS="$DESERT_CPPFLAGS "'-I$(top_srcdir)/network/uwip'
@@ -139,6 +141,8 @@ AC_SUBST(DESERT_LIBADD)
 AC_DEFINE(CPP_NAMESPACE,std) 
 
 AC_CHECK_LIB(pthread, pthread_create, [LIBS="$LIBS -lpthread"]) 
+
+LIBS="$LIBS /home/chris/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/net-blocks/../.build/libmynb_p.a"
 
 AC_CONFIG_FILES([
     Makefile

@@ -15,8 +15,8 @@
 #include <vector>
 #include <stdint.h> 
 
-#include "net-blocks/runtime/nb_runtime.h"
-#include "net-blocks/scratch/gen_headers.h"
+#include "nb_runtime.h"
+#include "gen_headers.h"
 
 
 namespace

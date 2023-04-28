@@ -45,14 +45,17 @@ static void callback(int event, nb__connection_t * c) {
 }
 
 Nb_pModule::Nb_pModule():chkTimerPeriod(this), chkNetBlocksTimer(this) {
+	std::cout << "Nb_pModule::Nb_pModule()::chkTImerPeriod" << std::endl;
 	nb__desert_init((void*)this);
 	nb__net_init();
 	char server_id[] = {0, 0, 0, 0, 0, 1};
-
+	std::cout << "server_id = " << server_id << std::endl;
 	// memcpy(nb__my_host_id, server_id, 6);
 
 	conn = nb__establish(0, 8081, 8080, callback);
+	std::cout << "conn = " << conn << std::endl;
 	chkNetBlocksTimer.resched(10.0);
+	std::cout << "initialized\n";
 }
 
 Nb_pModule::~Nb_pModule(){
