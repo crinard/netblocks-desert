@@ -273,7 +273,7 @@ proc finish {} {
         puts "Simulation summary"
         puts "number of nodes  : $opt(nn)"
         puts "packet size      : $opt(pktsize) byte"
-        puts "app_period       : $opt(app_period) s"
+        # puts "app_period       : $opt(app_period) s"
         puts "number of nodes  : $opt(nn)"
         puts "simulation length: $opt(txduration) s"
         puts "tx power         : $opt(txpower) dB"
