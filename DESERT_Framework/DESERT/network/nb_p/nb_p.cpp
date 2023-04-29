@@ -29,7 +29,6 @@ public:
 	TclObject *
 	create(int, const char *const *)
 	{
-		std::cerr << "********HI THERE, I'VE CHANGED AGAIN!********\n";
 		return (new Nb_pModule);
 	}
 } class_nb_p_module;
@@ -49,10 +48,11 @@ Nb_pModule::Nb_pModule():chkTimerPeriod(this), chkNetBlocksTimer(this) {
 	nb__desert_init((void*)this);
 	nb__net_init();
 	char server_id[] = {0, 0, 0, 0, 0, 1};
+	char client_id[] = {0, 0, 0, 0, 0, 2};
 	std::cout << "server_id = " << server_id << std::endl;
 	memcpy(nb__my_host_id, server_id, 6);
 	std::cout << "nb__my_host_id = " << nb__my_host_id << std::endl;
-	conn = nb__establish(0, 8081, 8080, callback);
+	conn = nb__establish(client_id, 8081, 8080, callback);
 	std::cout << "conn = " << conn << std::endl;
 	chkNetBlocksTimer.resched(10.0);
 	std::cout << "initialized\n";
@@ -128,20 +128,17 @@ void Nb_pModule::uwSendTimerAppl::expire(Event *e)
 	m_->sendPkt(); //TODO: This packet/video sending should be seperate from the 
 	m_->chkTimerPeriod.resched(120.0); // schedule next transmission
 }
-
-// void Nb_pModule::uwNetBlocksTimer::expire(Event *e)
-// {
-// 	nb__main_loop_step();
-// 	m_->chkNetBlocksTimer.resched(10); // schedule next transmission
-// }
-
+static int uidcnt_ = 0;
 void Nb_pModule::sendPkt(void) {
 
 	Packet *p = Packet::alloc();
 	hdr_cmn *ch = hdr_cmn::access(p);
+	ch->uid() = uidcnt_++;
+	ch->ptype() = 2;
+	ch->size() = 125;
 	// incrPktSent();
-    nb__main_loop_step();
 	ch->timestamp() = Scheduler::instance().clock();
+	nb__main_loop_step();
 	sendDown(p,0);
 }
 

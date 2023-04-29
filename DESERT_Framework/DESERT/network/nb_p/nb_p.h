@@ -70,7 +70,7 @@ public:
 	virtual int command(int, const char *const *);
 
 	// virtual std::vector<Packet*> getNBReadBuffer(void);
-	static inline void sendDown(Packet* p, double delay) {
+	void senddown(Packet* p, double delay) {
 		sendDown(p, delay);
 	}
 protected:
