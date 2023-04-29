@@ -561,6 +561,7 @@ build_DESERT() {
 
     info_L2 "make       [$*]"
     make >> "${currentBuildLog}/desert-${DESERT_VERSION}-$*.log"  2>&1
+    #make
     if [ $? -ne 0 ] ; then
         err_L1 "Error during the compilation of DESERT! Exiting ..."
         tail -n 50 ${currentBuildLog}/desert-${DESERT_VERSION}-$*.log

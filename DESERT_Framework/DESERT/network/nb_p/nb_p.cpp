@@ -11,9 +11,9 @@
 #include <iostream>
 
 #include "nb_p.h"
-#include "net-blocks/runtime/nb_runtime.h"
+#include "nb_runtime.h"
 // #include "net-blocks/scratch/gen_headers.h"
-// extern char nb__my_host_id[];
+extern char nb__my_host_id[];
 
 /**
  * Adds the module for Nb_pModuleClass in ns2.
@@ -29,7 +29,7 @@ public:
 	TclObject *
 	create(int, const char *const *)
 	{
-		// std::cout << 
+		std::cerr << "********HI THERE, I'VE CHANGED AGAIN!********\n";
 		return (new Nb_pModule);
 	}
 } class_nb_p_module;
@@ -50,8 +50,8 @@ Nb_pModule::Nb_pModule():chkTimerPeriod(this), chkNetBlocksTimer(this) {
 	nb__net_init();
 	char server_id[] = {0, 0, 0, 0, 0, 1};
 	std::cout << "server_id = " << server_id << std::endl;
-	// memcpy(nb__my_host_id, server_id, 6);
-
+	memcpy(nb__my_host_id, server_id, 6);
+	std::cout << "nb__my_host_id = " << nb__my_host_id << std::endl;
 	conn = nb__establish(0, 8081, 8080, callback);
 	std::cout << "conn = " << conn << std::endl;
 	chkNetBlocksTimer.resched(10.0);

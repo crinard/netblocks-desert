@@ -618,6 +618,24 @@ make_dir() {
     return 0
 }
 
+# NOTE: Modified for install-DESERT-only.sh
+make_dir_modified() {
+    log_L1 "[make_dir]: -->" ${INSTALL_LOG}
+    if [ "${_DEBUG}" = "1" ]; then
+        debug__print_screen_L1 "fuction_name is: make_dir_modified()"
+    fi
+    rm -rf ${DEST_FOLDER}/DESERT-3.3.0-build
+    rm -rf ${DEST_FOLDER}/DESERT-3.3.0-src
+    rm -rf ${DEST_FOLDER}/lib/libnb_p.*
+    log_L2 "[make_dir]: the folder above exists. Do you want replace it [Y/n]? -> ${TMP_INPUT} " ${INSTALL_LOG}
+	#mkdir ${DEST_FOLDER}
+	#return 
+
+    mkdir -p ${DEST_FOLDER}
+    log_L2 "[make_dir]: folder ${DEST_FOLDER} created" ${INSTALL_LOG}
+    return 0
+}
+
 call_installer() {
     log_L1 "[call_installer]: -->" ${INSTALL_LOG}
     #***
@@ -632,6 +650,28 @@ call_installer() {
     cd Installer
     log_L2 "[call_installer]: launching the installDESERT_${TARGET}.sh script " ${INSTALL_LOG}
     ./installDESERT_${TARGET}.sh ${PARAMETER4INSTALLER}
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
+
+    return 0
+}
+
+# NOTE: Modified version of the script to only rebuild
+call_installer_modified() {
+    log_L1 "[call_installer]: -->" ${INSTALL_LOG}
+    #***
+    # call_installer()
+    #*
+    if [ "${_DEBUG}" = "1" ]; then
+        debug__print_screen_L1 "fuction_name is: call_installer()"
+    fi
+
+    PARAMETER4INSTALLER="${TARGET} ${INST_MODE} ${DEST_FOLDER} ${CUSTOM_PAR} ${ADDONS}"
+
+    cd Installer
+    log_L2 "[call_installer]: launching the installDESERT_${TARGET}.sh script " ${INSTALL_LOG}
+    ./install${TARGET}.sh ${PARAMETER4INSTALLER}
     if [ $? -ne 0 ]; then
         exit 1
     fi
@@ -664,6 +704,54 @@ check_pktInstallation () {
     fi
 }
 
+handle_package_modified() {
+    log_L1 "[handle_package]: -->" ${INSTALL_LOG}
+    log_L2 "[handle_package]: $*" ${INSTALL_LOG}
+
+    if [ ! -e ${UNPACKED_FOLDER} ]; then
+        err_L1 "ERROR: folder ${UNPACKED_FOLDER} NOT found!"
+        exit 1
+    fi
+
+    eval package_DIR="\$${2}_DIR"
+
+    #BUILD_TYPE=${1/\// }
+    BUILD_TYPE=$(echo $1 | sed 's/\// /g')
+    for build_type in $BUILD_TYPE; do
+        printf "*********HANDLE HOST*************\n"
+        if [ ! -d ${BUILD_HOST}/${package_DIR} ]; then
+            #TODO:check the following code lines
+            if [ ${2} = ${DESERT_DIR} ]; then
+            	printf "********Handle desert*********\n"
+	        mkdir -p ${BUILD_HOST}/${DESERT_DIR}
+	        ln -s ${BUILD_HOST}/${DESERT_DIR} ${DEST_FOLDER}
+	        mv ${DEST_FOLDER}/${DESERT_DIR} ${DEST_FOLDER}/${DESERT_DIR}-${DESERT_VERSION}-build
+	        ln -s ${ROOT_DESERT}/${DESERT_DIR} ${DEST_FOLDER}
+	        mv ${DEST_FOLDER}/${DESERT_DIR} ${DEST_FOLDER}/${DESERT_DIR}-${DESERT_VERSION}-src
+            else
+	        cp -r -i ${UNPACKED_FOLDER}/${package_DIR} ${BUILD_HOST}/${package_DIR}
+            fi
+        fi
+
+        cd ${BUILD_HOST}/${package_DIR}
+
+        # exec the following commands in a subshell
+        if [ "$?" -ne "1" ]; then
+            (
+	        currentBuildLog=${BUILD_HOST}
+	        ARCH=$HOST
+	        build_$2 host
+            )
+        fi
+        if [ $? -ne 0 ]; then
+            err_L1 "EXIT FROM THE INSTALLATION PROCEDURE!"
+            exit 1
+        fi
+
+        touch .installed.check
+    done
+}
+
 handle_package() {
     log_L1 "[handle_package]: -->" ${INSTALL_LOG}
     log_L2 "[handle_package]: $*" ${INSTALL_LOG}
@@ -684,6 +772,7 @@ handle_package() {
                 if [ ! -d ${BUILD_HOST}/${package_DIR} ]; then
                     #TODO:check the following code lines
                     if [ ${2} = ${DESERT_DIR} ]; then
+                    	printf "********Handle desert*********\n"
                         mkdir -p ${BUILD_HOST}/${DESERT_DIR}
                         ln -s ${BUILD_HOST}/${DESERT_DIR} ${DEST_FOLDER}
                         mv ${DEST_FOLDER}/${DESERT_DIR} ${DEST_FOLDER}/${DESERT_DIR}-${DESERT_VERSION}-build
