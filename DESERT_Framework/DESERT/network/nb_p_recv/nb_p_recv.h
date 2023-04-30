@@ -15,8 +15,8 @@
 #include <vector>
 #include <stdint.h> 
 
-#include "nb_runtime.h"
-#include "gen_headers.h"
+#include "nbp_runtime.h"
+#include "nbp_gen_headers.h"
 
 
 namespace
@@ -121,7 +121,7 @@ protected:
 	virtual double getHeaderSize(void);
 	uwSendTimerAppl chkTimerPeriod;
 	uwSendTimerAppl chkNetBlocksTimer;
-	nb__connection_t * conn;
+	nbp__connection_t * conn;
 #define READ_BUF_LEN 1000
 	Packet** recvBuf;
 	size_t recvBufLen;

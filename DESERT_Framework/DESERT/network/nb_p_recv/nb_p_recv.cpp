@@ -11,8 +11,8 @@
 #include <iostream>
 
 #include "nb_p_recv.h"
-#include "nb_runtime.h"
-extern char nb__my_host_id[];
+#include "nbp_runtime.h"
+extern char nbp__my_host_id[];
 
 /**
  * Adds the module for Nb_p_recv_ModuleClass in ns2.
@@ -32,11 +32,11 @@ public:
 	}
 } class_nb_p_recv_module;
 int running = 1;
-static void callback(int event, nb__connection_t * c) {
+static void callback(int event, nbp__connection_t * c) {
 	std::cout << "callback called\n, event = " << event << "\n";
 	if (event == QUEUE_EVENT_READ_READY) {
 		char buff[65];
-		int len = nb__read(c, buff, 64);
+		int len = nbp__read(c, buff, 64);
 		buff[len] = 0;	
 		printf("Received = %s\n", buff);	
 		running = 0;
@@ -45,14 +45,14 @@ static void callback(int event, nb__connection_t * c) {
 
 Nb_p_recv_Module::Nb_p_recv_Module():chkTimerPeriod(this), chkNetBlocksTimer(this) {
 	std::cout << "Nb_p RECIEVE MODULE INIT" << std::endl;
-	nb__desert_init((void*)this);
-	nb__net_init();
+	nbp__desert_init((void*)this);
+	nbp__net_init();
 	char server_id[] = {0, 0, 0, 0, 0, 1};
 	char client_id[] = {0, 0, 0, 0, 0, 2};
 	std::cout << "server_id = " << server_id << std::endl;
-	memcpy(nb__my_host_id, server_id, 6);
-	std::cout << "nb__my_host_id = " << nb__my_host_id << std::endl;
-	conn = nb__establish(client_id, 8081, 8080, callback);
+	memcpy(nbp__my_host_id, server_id, 6);
+	std::cout << "nbp__my_host_id = " << nbp__my_host_id << std::endl;
+	conn = nbp__establish(client_id, 8081, 8080, callback);
 	std::cout << "conn = " << conn << std::endl;
 	chkNetBlocksTimer.resched(10.0);
 	std::cout << "initialized\n";
@@ -61,7 +61,7 @@ Nb_p_recv_Module::Nb_p_recv_Module():chkTimerPeriod(this), chkNetBlocksTimer(thi
 }
 
 Nb_p_recv_Module::~Nb_p_recv_Module(){
-	nb__destablish(conn);
+	nbp__destablish(conn);
 	chkNetBlocksTimer.force_cancel();
 }
 
@@ -138,8 +138,8 @@ void Nb_p_recv_Module::sendPkt(void) {
 	// ch->uid() = uidcnt_++;
 	// ch->ptype() = 2;
 	// ch->size() = 125;
-	nb__send_packet("Hello World", sizeof("Hello World"));
-	nb__main_loop_step();
+	nbp__send_packet("Hello World", sizeof("Hello World"));
+	nbp__main_loop_step();
 	// sendDown(p,0);
 }
 
