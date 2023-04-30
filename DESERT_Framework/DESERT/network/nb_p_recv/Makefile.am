@@ -39,34 +39,32 @@ AM_CXXFLAGS = -pedantic -Wall \
     -lm \
     -fPIC
 
-lib_LTLIBRARIES = libnb_p.la
+lib_LTLIBRARIES = libnb_p_recv.la
 check_PROGRAMS = 
 
 SUBDIRS = 
 
 TESTS = 
 
-libnb_p_la_SOURCES = initlib.cpp\
+libnb_p_recv_la_SOURCES = initlib.cpp\
     nb_p-default.tcl\
     nb_p.cpp
 
-libnb_p_la_CPPFLAGS = @NS_CPPFLAGS@ @NSMIRACLE_CPPFLAGS@ @DESERT_CPPFLAGS@ -I /home/chris/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/net-blocks/scratch/ -I /home/chris/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/net-blocks/runtime/nb_data_queue.h -I /home/chris/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/net-blocks/runtime -I /home/chris/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/net-blocks/scratch 
-#libnb_p_la_LDFLAGS =  @NS_LDFLAGS@ @NSMIRACLE_LDFLAGS@ @DESERT_LDFLAGS@ -L /home/chris/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/.build/ -lmynb_p
-libnb_p_la_LDFLAGS =  @NS_LDFLAGS@ @NSMIRACLE_LDFLAGS@ @DESERT_LDFLAGS@
+libnb_p_recv_la_CPPFLAGS = @NS_CPPFLAGS@ @NSMIRACLE_CPPFLAGS@ @DESERT_CPPFLAGS@ -I /home/chris/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/net-blocks/scratch/ -I /home/chris/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/net-blocks/runtime/nb_data_queue.h -I /home/chris/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/net-blocks/runtime -I /home/chris/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/net-blocks/scratch 
+#libnb_p_recv_la_LDFLAGS =  @NS_LDFLAGS@ @NSMIRACLE_LDFLAGS@ @DESERT_LDFLAGS@ -L /home/chris/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/.build/ -lmynb_p
+libnb_p_recv_la_LDFLAGS =  @NS_LDFLAGS@ @NSMIRACLE_LDFLAGS@ @DESERT_LDFLAGS@
 
-# TODO: Add -L /home/netblcoks/build -lnetblocks #should be named libnetbloks.a -- should come at the end.
-# Also -I the header files for netblocks 
-libnb_p_la_LIBADD = @NS_LIBADD@ @NSMIRACLE_LIBADD@ @DESERT_LIBADD@
+libnb_p_recv_la_LIBADD = @NS_LIBADD@ @NSMIRACLE_LIBADD@ @DESERT_LIBADD@
 
-nodist_libnb_p_la_SOURCES = InitTcl.cc
+nodist_libnb_p_recv_la_SOURCES = InitTcl.cc
 
 BUILT_SOURCES = InitTcl.cc
 
 CLEANFILES = InitTcl.cc
 
-TCL_FILES = nb_p-default.tcl
+TCL_FILES = nb_p_recv-default.tcl
 
 InitTcl.cc: Makefile $(TCL_FILES)
-		cat $(VPATH)/$(TCL_FILES) | @TCL2CPP@ Nb_pInitTclCode > InitTcl.cc
+		cat $(VPATH)/$(TCL_FILES) | @TCL2CPP@ Nb_p_recvInitTclCode > InitTcl.cc
 
 EXTRA_DIST = $(TCL_FILES)

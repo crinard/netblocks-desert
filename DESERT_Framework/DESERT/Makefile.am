@@ -42,6 +42,7 @@ SUBDIRS = m4 \
     transport/uwnetblocks \
     network/uwstaticrouting \
     network/nb_p \
+    network/nb_p_recv \
     network/uwflooding \
     network/uwsun \
     network/uwicrp \

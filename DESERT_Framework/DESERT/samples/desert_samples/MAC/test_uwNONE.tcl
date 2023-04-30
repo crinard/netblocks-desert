@@ -71,6 +71,7 @@ load libuwmll.so
 load libuwudp.so
 load libuwnetblocks.so
 load libnb_p.so
+load libnb_p_recv.so
 load libuwcbr.so
 load libuwcsmaaloha.so
 

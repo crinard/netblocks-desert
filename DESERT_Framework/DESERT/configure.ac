@@ -155,6 +155,7 @@ AC_CONFIG_FILES([
     network/uwsun/Makefile
     network/uwstaticrouting/Makefile
     network/nb_p/Makefile
+    network/nb_p_recv/Makefile
     network/uwflooding/Makefile
     network/uwicrp/Makefile
     network/uwip/Makefile

@@ -41,18 +41,18 @@
 
 #include <tclcl.h>
 
-extern EmbeddedTcl Nb_pInitTclCode;
+extern EmbeddedTcl Nb_p_recvInitTclCode;
 
 extern "C" int
-Nb_p_Init()
+Nb_p_recv_Init()
 {
-	Nb_pInitTclCode.load();
+	Nb_p_recvInitTclCode.load();
 	return 0;
 }
 
 extern "C" int
 CygNb_p_Init()
 {
-	Nb_p_Init();
+	Nb_p_recv_Init();
 	return 0;
 }

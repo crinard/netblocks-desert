@@ -26,8 +26,8 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# @file   nb_p-default.tcl
+# @file   nb_p_recv-default.tcl
 # @author Giovanni Toso
 # @version 1.0.0
 
-Module/UW/Nb_p set debug_ 0
+Module/UW/Nb_p_recv set debug_ 0

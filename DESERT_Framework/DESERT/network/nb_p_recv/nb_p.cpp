@@ -12,17 +12,16 @@
 
 #include "nb_p.h"
 #include "nb_runtime.h"
-// #include "net-blocks/scratch/gen_headers.h"
 extern char nb__my_host_id[];
 
 /**
  * Adds the module for Nb_pModuleClass in ns2.
  */
-static class Nb_pModuleClass : public TclClass
+static class Nb_p_recvModuleClass : public TclClass
 {
 public:
-	Nb_pModuleClass()
-		: TclClass("Module/UW/Nb_p")
+	Nb_p_recvModuleClass()
+		: TclClass("Module/UW/Nb_p_recv")
 	{
 	}
 
@@ -31,7 +30,7 @@ public:
 	{
 		return (new Nb_pModule);
 	}
-} class_nb_p_module;
+} class_nb_p_recv_module;
 int running = 1;
 static void callback(int event, nb__connection_t * c) {
 	std::cout << "callback called\n, event = " << event << "\n";
@@ -45,7 +44,7 @@ static void callback(int event, nb__connection_t * c) {
 }
 
 Nb_pModule::Nb_pModule():chkTimerPeriod(this), chkNetBlocksTimer(this) {
-	std::cout << "Nb_pModule::Nb_pModule()::chkTImerPeriod" << std::endl;
+	std::cout << "Nb_p RECIEVE MODULE INIT" << std::endl;
 	nb__desert_init((void*)this);
 	nb__net_init();
 	char server_id[] = {0, 0, 0, 0, 0, 1};
