@@ -233,7 +233,7 @@ CsmaAloha::command(int argc, const char *const *argv)
 	} else if (argc == 3) {
 		if (strcasecmp(argv[1], "setMacAddr") == 0) {
 			addr = atoi(argv[2]);
-			if (true)
+			if (debug_)
 				cout << "Csma_Aloha MAC address of current node is " << addr
 					 << endl;
 			return TCL_OK;
@@ -324,10 +324,6 @@ void
 CsmaAloha::updateAckTimeout(double rtt)
 {
 	updateRTT(rtt);
-
-	cout << NOW << "  CsmaAloha(" << addr
-			<< ")::updateAckTimeout() curr ACK_timeout = " << ACK_timeout
-			<< endl;
 }
 
 bool
@@ -389,11 +385,6 @@ CsmaAloha::getBackoffTime()
 			backoff_tuner * random * 2.0 * ACK_timeout * pow(2.0, counter);
 	backoffSumDuration(backoff_duration);
 
-	if (true) {
-		cout << NOW << "  CsmaAloha(" << addr
-			 << ")::getBackoffTime() backoff time = " << backoff_duration
-			 << " s" << endl;
-	}
 	return backoff_duration;
 }
 
@@ -447,38 +438,20 @@ CsmaAloha::initPkt(Packet *p, CSMA_PKT_TYPE type, int dest_addr)
 void
 CsmaAloha::Mac2PhyStartTx(Packet *p)
 {
-
-	cout << NOW << "  CsmaAloha(" << addr
-			<< ")::Mac2PhyStartTx() start tx packet" << endl;
-
 	MMac::Mac2PhyStartTx(p);
 }
 
 void
 CsmaAloha::Phy2MacEndTx(const Packet *p)
 {
-
-	cout << NOW << "  CsmaAloha(" << addr
-			<< ")::Phy2MacEndTx() end tx packet" << endl;
-
 	switch (curr_state) {
 
 		case (CSMA_STATE_TX_DATA): {
 			refreshReason(CSMA_REASON_DATA_TX);
 			if (ack_mode == CSMA_ACK_MODE) {
-				cout << NOW << "  CsmaAloha(" << addr
-						<< ")::Phy2MacEndTx() DATA sent,from "
-						<< status_info[curr_state] << " to "
-						<< status_info[CSMA_STATE_WAIT_ACK] << endl;
-
+				
 				stateWaitAck();
 			} else {
-
-				cout << NOW << "  CsmaAloha(" << addr
-						<< ")::Phy2MacEndTx() DATA sent, from "
-						<< status_info[curr_state] << " to "
-						<< status_info[CSMA_STATE_IDLE] << endl;
-
 				stateIdle();
 			}
 		} break;
@@ -487,41 +460,18 @@ CsmaAloha::Phy2MacEndTx(const Packet *p)
 			refreshReason(CSMA_REASON_ACK_TX);
 
 			if (prev_prev_state == CSMA_STATE_RX_BACKOFF) {
-				cout << NOW << "  CsmaAloha(" << addr
-						<< ")::Phy2MacEndTx() ack sent, from "
-						<< status_info[curr_state] << " to "
-						<< status_info[CSMA_STATE_CHK_BACKOFF_TIMEOUT] << endl;
-
+				
 				stateCheckBackoffExpired();
 			} else if (prev_prev_state == CSMA_STATE_RX_LISTEN) {
-				cout << NOW << "  CsmaAloha(" << addr
-						<< ")::Phy2MacEndTx() ack sent, from "
-						<< status_info[curr_state] << " to "
-						<< status_info[CSMA_STATE_CHK_LISTEN_TIMEOUT] << endl;
-
 				stateCheckListenExpired();
 			} else if (prev_prev_state == CSMA_STATE_RX_IDLE) {
-
-				cout << NOW << "  CsmaAloha(" << addr
-						<< ")::Phy2MacEndTx() ack sent, from "
-						<< status_info[curr_state] << " to "
-						<< status_info[CSMA_STATE_IDLE] << endl;
-
 				stateIdle();
 			} else {
-
-				cout << NOW << "  CsmaAloha(" << addr
-					 << ")::Phy2MacEndTx() logical error in timers, current "
-						"state = "
-					 << status_info[curr_state] << endl;
 				stateIdle();
 			}
 		} break;
 
 		default: {
-			cout << NOW << "  CsmaAloha(" << addr
-				 << ")::Phy2MacEndTx() logical error, current state = "
-				 << status_info[curr_state] << endl;
 			stateIdle();
 		} break;
 	}
@@ -530,10 +480,6 @@ CsmaAloha::Phy2MacEndTx(const Packet *p)
 void
 CsmaAloha::Phy2MacStartRx(const Packet *p)
 {
-	if (true)
-		cout << NOW << "  CsmaAloha(" << addr
-			 << ")::Phy2MacStartRx() rx Packet " << endl;
-
 	refreshReason(CSMA_REASON_START_RX);
 
 	switch (curr_state) {
@@ -555,9 +501,6 @@ CsmaAloha::Phy2MacStartRx(const Packet *p)
 			break;
 
 		default: {
-			cerr << NOW << "  CsmaAloha(" << addr
-				 << ")::Phy2MacStartRx() logical warning, current state = "
-				 << status_info[curr_state] << endl;
 			stateIdle();
 		}
 	}
@@ -581,20 +524,8 @@ CsmaAloha::Phy2MacEndRx(Packet *p)
 
 	double distance = diff_time * prop_speed;
 
-	if (true)
-		cout << NOW << "  CsmaAloha(" << addr << ")::Phy2MacEndRx() "
-			 << status_info[curr_state]
-			 << ", received a pkt type = " << ch->ptype()
-			 << ", src addr = " << mach->macSA()
-			 << " dest addr = " << mach->macDA()
-			 << ", estimated distance between nodes = " << distance << " m "
-			 << endl;
-
 	if (ch->error()) {
 
-		if (true)
-			cout << NOW << "  CsmaAloha(" << addr
-				 << ")::Phy2MacEndRx() dropping corrupted pkt " << endl;
 		incrErrorPktsRx();
 
 		refreshReason(CSMA_REASON_PKT_ERROR);
@@ -646,11 +577,6 @@ CsmaAloha::txAck(int dest_addr)
 void
 CsmaAloha::stateRxPacketNotForMe(Packet *p)
 {
-	if (true)
-		cout << NOW << "  CsmaAloha(" << addr
-			 << ")::stateRxPacketNotForMe() pkt for another address. Dropping "
-				"pkt"
-			 << endl;
 	if (p != NULL)
 		Packet::free(p);
 
@@ -687,9 +613,6 @@ CsmaAloha::stateCheckListenExpired()
 {
 	refreshState(CSMA_STATE_CHK_LISTEN_TIMEOUT);
 
-	if (true)
-		cout << NOW << "  CsmaAloha(" << addr << ")::stateCheckListenExpired()"
-			 << endl;
 	if (print_transitions)
 		printStateInfo();
 	if (listen_timer.isActive()) {
@@ -718,9 +641,6 @@ CsmaAloha::stateCheckAckExpired()
 {
 	refreshState(CSMA_STATE_CHK_ACK_TIMEOUT);
 
-	if (true)
-		cout << NOW << "  CsmaAloha(" << addr << ")::stateCheckAckExpired()"
-			 << endl;
 	if (print_transitions)
 		printStateInfo();
 	if (ack_timer.isActive()) {
@@ -743,9 +663,6 @@ CsmaAloha::stateCheckBackoffExpired()
 {
 	refreshState(CSMA_STATE_CHK_BACKOFF_TIMEOUT);
 
-	if (true)
-		cout << NOW << "  CsmaAloha(" << addr << ")::stateCheckBackoffExpired()"
-			 << endl;
 	if (print_transitions)
 		printStateInfo();
 	if (backoff_timer.isActive()) {
@@ -777,10 +694,6 @@ CsmaAloha::stateIdle()
 	if (print_transitions)
 		printStateInfo();
 
-	if (true)
-		cout << NOW << "  CsmaAloha(" << addr
-			 << ")::stateIdle() queue size = " << Q.size() << endl;
-
 	if (!Q.empty()) {
 		refreshReason(CSMA_REASON_LISTEN);
 		stateListen();
@@ -807,10 +720,6 @@ CsmaAloha::stateListen()
 	double time =
 			listen_time * RNG::defaultrng()->uniform_double() + wait_costant;
 
-	if (true)
-		cout << NOW << "  CsmaAloha(" << addr
-			 << ")::stateListen() listen time = " << time << endl;
-
 	if (print_transitions)
 		printStateInfo();
 
@@ -836,8 +745,6 @@ CsmaAloha::stateBackoff()
 	else
 		backoff_timer.schedule(getBackoffTime());
 
-	if (true)
-		cout << NOW << "  CsmaAloha(" << addr << ")::stateBackoff() " << endl;
 	if (print_transitions)
 		printStateInfo(backoff_timer.getDuration());
 }
@@ -857,8 +764,6 @@ CsmaAloha::stateTxData()
 {
 	refreshState(CSMA_STATE_TX_DATA);
 
-	if (true)
-		cout << NOW << "  CsmaAloha(" << addr << ")::stateTxData() " << endl;
 	if (print_transitions)
 		printStateInfo();
 
@@ -883,7 +788,7 @@ CsmaAloha::stateTxData()
 
 		refreshReason(CSMA_REASON_MAX_TX_TRIES);
 
-		if (true)
+		if (debug_)
 			cout << NOW << "  CsmaAloha(" << addr
 				 << ")::stateTxData() curr_tx_rounds " << curr_tx_rounds
 				 << " > max_tx_tries = " << max_tx_tries << endl;
@@ -898,8 +803,10 @@ CsmaAloha::stateWaitAck()
 	ack_timer.stop();
 	refreshState(CSMA_STATE_WAIT_ACK);
 
-	if (true)
-		cout << NOW << "  CsmaAloha(" << addr << ")::stateWaitAck() " << endl;
+	if (debug_) {
+       cout << NOW << "  CsmaAloha(" << addr << ")::stateWaitAck() " << endl;
+    }
+
 	if (print_transitions)
 		printStateInfo();
 
@@ -921,7 +828,7 @@ CsmaAloha::stateTxAck(int dest_addr)
 {
 	refreshState(CSMA_STATE_TX_ACK);
 
-	if (true)
+	if (debug_)
 		cout << NOW << "  CsmaAloha(" << addr << ")::stateTxAck() dest addr "
 			 << dest_addr << endl;
 	if (print_transitions)
@@ -935,7 +842,7 @@ CsmaAloha::stateRxData(Packet *data_pkt)
 {
 	refreshState(CSMA_STATE_DATA_RX);
 
-	if (true)
+	if (debug_)
 		cout << NOW << "  CsmaAloha(" << addr << ")::stateRxData() in state "
 			 << status_info[curr_state] << endl;
 	refreshReason(CSMA_REASON_DATA_RX);
@@ -993,8 +900,9 @@ CsmaAloha::stateRxAck(Packet *p)
 {
 	ack_timer.stop();
 	refreshState(CSMA_STATE_ACK_RX);
-	if (true)
-		cout << NOW << "  CsmaAloha(" << addr << ")::stateRxAck() " << endl;
+	if (debug_) {
+       cout << NOW << "  CsmaAloha(" << addr << ")::stateRxAck() " << endl;
+    }
 
 	Packet::free(p);
 
@@ -1032,7 +940,7 @@ CsmaAloha::stateRxAck(Packet *p)
 void
 CsmaAloha::printStateInfo(double delay)
 {
-	if (true)
+	if (debug_)
 		cout << NOW << " CsmaAloha(" << addr << ")::printStateInfo() "
 			 << "from " << status_info[prev_state] << " to "
 			 << status_info[curr_state]
@@ -1058,6 +966,5 @@ void
 CsmaAloha::waitForUser()
 {
 	std::string response;
-	std::cout << "Press Enter to continue";
 	std::getline(std::cin, response);
 }
