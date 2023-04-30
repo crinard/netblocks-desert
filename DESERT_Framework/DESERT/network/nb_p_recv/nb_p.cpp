@@ -139,7 +139,7 @@ void Nb_pModule::sendPkt(void) {
 	// ch->uid() = uidcnt_++;
 	// ch->ptype() = 2;
 	// ch->size() = 125;
-	nb__send(conn, "Hello World", sizeof("Hello World"));
+	nb__send_packet("Hello World", sizeof("Hello World"));
 	nb__main_loop_step();
 	// sendDown(p,0);
 }
