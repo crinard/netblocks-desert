@@ -10,12 +10,12 @@
 #include <stdlib.h>
 #include <iostream>
 
-#include "nb_p.h"
+#include "nb_p_recv.h"
 #include "nb_runtime.h"
 extern char nb__my_host_id[];
 
 /**
- * Adds the module for Nb_pModuleClass in ns2.
+ * Adds the module for Nb_p_recv_ModuleClass in ns2.
  */
 static class Nb_p_recvModuleClass : public TclClass
 {
@@ -28,7 +28,7 @@ public:
 	TclObject *
 	create(int, const char *const *)
 	{
-		return (new Nb_pModule);
+		return (new Nb_p_recv_Module);
 	}
 } class_nb_p_recv_module;
 int running = 1;
@@ -43,7 +43,7 @@ static void callback(int event, nb__connection_t * c) {
 	}
 }
 
-Nb_pModule::Nb_pModule():chkTimerPeriod(this), chkNetBlocksTimer(this) {
+Nb_p_recv_Module::Nb_p_recv_Module():chkTimerPeriod(this), chkNetBlocksTimer(this) {
 	std::cout << "Nb_p RECIEVE MODULE INIT" << std::endl;
 	nb__desert_init((void*)this);
 	nb__net_init();
@@ -60,17 +60,17 @@ Nb_pModule::Nb_pModule():chkTimerPeriod(this), chkNetBlocksTimer(this) {
 	recvBufLen = 0;
 }
 
-Nb_pModule::~Nb_pModule(){
+Nb_p_recv_Module::~Nb_p_recv_Module(){
 	nb__destablish(conn);
 	chkNetBlocksTimer.force_cancel();
 }
 
-int Nb_pModule::recvSyncClMsg(ClMessage *m)
+int Nb_p_recv_Module::recvSyncClMsg(ClMessage *m)
 {
 	return Module::recvSyncClMsg(m);
 }
 
-int Nb_pModule::command(int argc, const char *const *argv)
+int Nb_p_recv_Module::command(int argc, const char *const *argv)
 {
 	Tcl &tcl = Tcl::instance();
 	if (argc == 2) {
@@ -103,7 +103,7 @@ int Nb_pModule::command(int argc, const char *const *argv)
 	return Module::command(argc, argv);
 }
 
-void Nb_pModule::recv(Packet *p)
+void Nb_p_recv_Module::recv(Packet *p)
 {
 	hdr_cmn *ch = HDR_CMN(p);
 	if(ch->direction() != hdr_cmn::UP) {
@@ -117,21 +117,21 @@ void Nb_pModule::recv(Packet *p)
 	return;
 }
 
-void Nb_pModule::start_gen(void) {
+void Nb_p_recv_Module::start_gen(void) {
 	chkTimerPeriod.resched(120.0);
 }
 
-void Nb_pModule::stop_gen(void) {
+void Nb_p_recv_Module::stop_gen(void) {
 	chkTimerPeriod.force_cancel();
 }
 
-void Nb_pModule::uwSendTimerAppl::expire(Event *e)
+void Nb_p_recv_Module::uwSendTimerAppl::expire(Event *e)
 {
 	m_->sendPkt(); //TODO: This packet/video sending should be seperate from the 
 	m_->chkTimerPeriod.resched(120.0); // schedule next transmission
 }
 static int uidcnt_ = 0;
-void Nb_pModule::sendPkt(void) {
+void Nb_p_recv_Module::sendPkt(void) {
 
 	// Packet *p = Packet::alloc();
 	// hdr_cmn *ch = hdr_cmn::access(p);
@@ -143,21 +143,21 @@ void Nb_pModule::sendPkt(void) {
 	// sendDown(p,0);
 }
 
-double Nb_pModule::getSentPkts(void) {
+double Nb_p_recv_Module::getSentPkts(void) {
 	return 0.0;
 }
-double Nb_pModule::getRecvPkts(void) {
+double Nb_p_recv_Module::getRecvPkts(void) {
 	return 0.0;
 }
-double Nb_pModule::getDropPkts(void) {
+double Nb_p_recv_Module::getDropPkts(void) {
 	return 0.0;
 }
-double Nb_pModule::getDelay(void) {
+double Nb_p_recv_Module::getDelay(void) {
 	return 0.0;
 }
-double Nb_pModule::getThroughput(void) {
+double Nb_p_recv_Module::getThroughput(void) {
 	return 0.0;
 }
-double Nb_pModule::getHeaderSize(void) {
+double Nb_p_recv_Module::getHeaderSize(void) {
 	return 0.0;
 }

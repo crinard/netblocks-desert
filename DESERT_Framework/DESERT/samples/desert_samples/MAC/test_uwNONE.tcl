@@ -85,7 +85,7 @@ $ns use-Miracle
 ##################
 # Tcl variables  #
 ##################
-set opt(nn)                 4.0 ;# Number of Nodes
+set opt(nn)                 2.0 ;# Number of Nodes
 set opt(pktsize)            125  ;# Pkt sike in byte
 set opt(starttime)          1	
 set opt(stoptime)           100000 
@@ -162,8 +162,13 @@ proc createNode { id } {
     global node_coordinates
     
     set node($id) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
-
-    set prnt($id)  [new Module/UW/Nb_p]
+    if {$id == 0} {
+        puts "Creating node 0"
+        set prnt($id)  [new Module/UW/Nb_p]
+    } else {
+        puts "Creating node 1"
+        set prnt($id)  [new Module/UW/Nb_p_recv]
+    }
     set mac($id)  [new Module/UW/CSMA_ALOHA] 
     set phy($id)  [new Module/MPhy/BPSK]  
 	
@@ -222,13 +227,6 @@ for {set id 0} {$id < $opt(nn)} {incr id}  {
 ################################
 proc connectNodes {id1 des1} {
     global ipif ipr portnum cbr cbr_sink ipif_sink ipr_sink opt 
-
-    # $cbr($id1,$des1) set destAddr_ [$ipif($des1) addr]
-    # $cbr($id1,$des1) set destPort_ $portnum($des1,$id1)
-
-    # $cbr($des1,$id1) set destAddr_ [$ipif($id1) addr]
-    # $cbr($des1,$id1) set destPort_ $portnum($id1,$des1) 
-
 }
 
 ##################
@@ -239,15 +237,6 @@ for {set id1 0} {$id1 < $opt(nn)} {incr id1}  {
 		connectNodes $id1 $id2
 	}
 }
-
-#Print the routing tables of the nodes
-#if {$opt(verbose)} {
-#	for {set id1 0} {$id1 < $opt(nn)} {incr id1}  {
-#		$ipr($id1) printroutes
-#	}
-#}
-
-
 
 #####################
 # Start/Stop Timers #
@@ -296,17 +285,6 @@ proc finish {} {
         set sum_sent_pkts [expr $sum_sent_pkts + $sent_pkts]
         set sum_rcv_pkts  [expr $sum_rcv_pkts + $rcv_pkts]
     }
-    
-    #if ($opt(verbose)) {
-    #    puts "Mean Throughput          : [expr ($sum_cbr_throughput/(($opt(nn))*($opt(nn)-1)))]"
-    #    puts "Sent Packets             : $sum_cbr_sent_pkts"
-    #    puts "Received Packets         : $sum_cbr_rcv_pkts"
-    #    puts "Packet Delivery Ratio    : [expr $sum_cbr_rcv_pkts / $sum_cbr_sent_pkts * 100]"
-    #    # puts "IP Pkt Header Size       : $ipheadersize"
-    #    # puts "UDP Header Size          : $udpheadersize"
-    #    puts "CBR Header Size          : $cbrheadersize"
-    #    puts "done!"
-    #}
     
     $ns flush-trace
     close $opt(tracefile)

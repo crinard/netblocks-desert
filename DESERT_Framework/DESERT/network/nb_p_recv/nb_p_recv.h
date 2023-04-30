@@ -3,8 +3,8 @@
  * @version 1.0.0
  */
 
-#ifndef _NB_P_H_
-#define _NB_P_H_
+#ifndef _NB_P_RECV_H_
+#define _NB_P_RECV_H_
 
 #define DROP_DEST_NO_ROUTE \
 	"DNR" /**< Reason for a drop in a <i>UWVBR</i> module. */
@@ -26,20 +26,20 @@ static const uint16_t IP_ROUTING_MAX_ROUTES =
 }
 
 /**
- * Nb_pModule class implements basic routing functionalities.
+ * Nb_p_recv_Module class implements basic routing functionalities.
  */
-class Nb_pModule : public Module
+class Nb_p_recv_Module : public Module
 {
 public:
 	/**
-	 * Constructor of Nb_pModule class.
+	 * Constructor of Nb_p_recv_Module class.
 	 */
-	Nb_pModule();
+	Nb_p_recv_Module();
 
 	/**
-	 * Destructor of Nb_pModule class.
+	 * Destructor of Nb_p_recv_Module class.
 	 */
-	virtual ~Nb_pModule();
+	virtual ~Nb_p_recv_Module();
 
 	/**
 	 * Performs the reception of packets from upper and lower layers.
@@ -93,7 +93,7 @@ protected:
 	class uwSendTimerAppl : public TimerHandler
 	{
 	public:
-		uwSendTimerAppl(Nb_pModule *m)
+		uwSendTimerAppl(Nb_p_recv_Module *m)
 			: TimerHandler()
 		{
 			m_ = m;
@@ -105,7 +105,7 @@ protected:
 
 	protected:
 		virtual void expire(Event *e);
-		Nb_pModule *m_;
+		Nb_p_recv_Module *m_;
 	}; // End uwSendTimer class
 
 	// Functions to start and stop generation

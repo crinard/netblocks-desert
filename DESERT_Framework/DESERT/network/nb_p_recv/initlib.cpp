@@ -37,7 +37,7 @@
  * Provides the initialization of Nb_p libraries.
  */
 
-#include "nb_p.h"
+#include "nb_p_recv.h"
 
 #include <tclcl.h>
 
