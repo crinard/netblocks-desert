@@ -112,10 +112,13 @@ void Nb_pModule::recv(Packet *p)
 	if(ch->direction() != hdr_cmn::UP) {
 		std::cerr << "Something weird here, packet direction is not UP" << std::endl;
 	} else {
-		fprintf(stderr, "this = %lu, Received packet recvBufLen = %lu, READ_BUF_LEN = %lu\n", (uint64_t) this, recvBufLen, READ_BUF_LEN);
+		fprintf(stderr, "Received packet recvBufLen = %lu, READ_BUF_LEN = %lu\n", recvBufLen, READ_BUF_LEN);
 		assert(recvBufLen < READ_BUF_LEN);
+		fprintf(stderr, "Packet = %p", p);
 		recvBuf[recvBufLen] = p;
+		fprintf(stderr,"Recvd packet\n");
 		recvBufLen++;
+		fprintf(stderr, "Finished recv");
 	}
 	return;
 }
@@ -133,7 +136,7 @@ void Nb_pModule::uwSendTimerAppl::expire(Event *e)
 {
 	m_->sendPkt(); //TODO: This packet/video sending should be seperate from the 
 	m_->chkTimerPeriod.resched(120.0); // schedule next transmission
-	std::cout << "uwSendTimerAppl::expire\n";
+	// std::cout << "uwSendTimerAppl::expire\n";
 }
 static int uidcnt_ = 0;
 void Nb_pModule::sendPkt(void) {

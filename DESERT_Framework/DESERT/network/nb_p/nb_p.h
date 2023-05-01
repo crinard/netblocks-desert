@@ -79,9 +79,9 @@ public:
 		return recvBuf;
 	}
 	void setRecvBufLen(size_t n) {
-		fprintf(stderr, "setRecvBufLen called, n = %lu\n", (uint64_t) this, n);
+		fprintf(stderr, "setRecvBufLen called, n = %lu\n", n);
 		recvBufLen = n;
-		fprintf(stderr, "this.loc = %lu, recvBufLen = %lu\n", (uint64_t) this, recvBufLen);
+		fprintf(stderr, "recvBufLen = %lu\n", recvBufLen);
 	}
 	int getRecvBufLen(void) {
 		fprintf(stderr, "getRecvBufLen called\n");
