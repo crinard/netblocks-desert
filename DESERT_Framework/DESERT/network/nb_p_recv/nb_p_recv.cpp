@@ -13,7 +13,7 @@
 #include "nb_p_recv.h"
 #include "nbp_runtime.h"
 extern char nbp__my_host_id[];
-
+// static bool isrunning = 0;
 /**
  * Adds the module for Nb_p_recv_ModuleClass in ns2.
  */

@@ -76,9 +76,11 @@ int Nb_pModule::command(int argc, const char *const *argv)
 	Tcl &tcl = Tcl::instance();
 	if (argc == 2) {
 		if (strcasecmp(argv[1], "start") == 0) {
+			std::cout << "***********start***********\n";
 			start_gen();
 			return TCL_OK;
 		} else if (strcasecmp(argv[1], "stop") == 0) {
+			std::cout << "***********stop***********\n";
 			stop_gen();
 			return TCL_OK;
 		} else if (strcasecmp(argv[1], "getsentpkts") == 0) {
@@ -123,6 +125,7 @@ void Nb_pModule::start_gen(void) {
 }
 
 void Nb_pModule::stop_gen(void) {
+	std::cout << "stop_gen\n";
 	chkTimerPeriod.force_cancel();
 }
 
@@ -130,6 +133,7 @@ void Nb_pModule::uwSendTimerAppl::expire(Event *e)
 {
 	m_->sendPkt(); //TODO: This packet/video sending should be seperate from the 
 	m_->chkTimerPeriod.resched(120.0); // schedule next transmission
+	std::cout << "uwSendTimerAppl::expire\n";
 }
 static int uidcnt_ = 0;
 void Nb_pModule::sendPkt(void) {
@@ -141,6 +145,7 @@ void Nb_pModule::sendPkt(void) {
 	// ch->size() = 125;
 	nb__send(conn, "Hello World", sizeof("Hello World"));
 	nb__main_loop_step();
+	std::cout << "sendPkt\n";
 	// sendDown(p,0);
 }
 

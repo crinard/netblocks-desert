@@ -279,8 +279,8 @@ proc finish {} {
 
     for {set i 0} {$i < $opt(nn)} {incr i}  {
         set throughput           [$prnt($i) getthroughput]
-        set sent_pkts        [$prnt($i) getsentpkts]
-        set rcv_pkts           [$prnt($i) getrecvpkts]
+        set sent_pkts            [$prnt($i) getsentpkts]
+        set rcv_pkts             [$prnt($i) getrecvpkts]
         set sum_throughput [expr $sum_throughput + $throughput]
         set sum_sent_pkts [expr $sum_sent_pkts + $sent_pkts]
         set sum_rcv_pkts  [expr $sum_rcv_pkts + $rcv_pkts]
