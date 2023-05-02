@@ -33,3 +33,4 @@ MODEM_log_*
 ***/.clang-format
 ***/configure~
 .DS_Store
+DESERT_Framework/DESERT/network/nb_p_recv/net-blocks/*

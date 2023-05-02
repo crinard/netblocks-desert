@@ -33,29 +33,30 @@ public:
 } class_nb_p_recv_module;
 int running = 1;
 static void callback(int event, nbp__connection_t * c) {
-	std::cout << "callback called\n, event = " << event << "\n";
 	if (event == QUEUE_EVENT_READ_READY) {
 		char buff[65];
 		int len = nbp__read(c, buff, 64);
 		buff[len] = 0;	
-		printf("Received = %s\n", buff);	
+		fprintf(stderr, "Client received = %s from server\n", buff);	
 		running = 0;
 	}
 }
 
-Nb_p_recv_Module::Nb_p_recv_Module():chkTimerPeriod(this), chkNetBlocksTimer(this) {
-	std::cout << "Nb_p RECIEVE MODULE INIT" << std::endl;
+Nb_p_recv_Module::Nb_p_recv_Module():chkTimerPeriod(this, false), chkNetBlocksTimer(this, true) {
+	// std::cout << "Nb_p RECIEVE MODULE INIT" << std::endl;
 	nbp__desert_init((void*)this);
 	nbp__net_init();
 	char server_id[] = {0, 0, 0, 0, 0, 1};
 	char client_id[] = {0, 0, 0, 0, 0, 2};
 	std::cout << "server_id = " << server_id << std::endl;
-	memcpy(nbp__my_host_id, server_id, 6);
+	memcpy(nbp__my_host_id, client_id, 6);
 	std::cout << "nbp__my_host_id = " << nbp__my_host_id << std::endl;
-	conn = nbp__establish(client_id, 8081, 8080, callback);
+	conn = nbp__establish(server_id, 8080, 8081, callback);
 	std::cout << "conn = " << conn << std::endl;
+
 	chkNetBlocksTimer.resched(10.0);
-	std::cout << "initialized\n";
+	chkTimerPeriod.resched(120.0);
+
 	recvBuf = (Packet**) calloc(READ_BUF_LEN, sizeof(Packet*));
 	recvBufLen = 0;
 }
@@ -63,6 +64,7 @@ Nb_p_recv_Module::Nb_p_recv_Module():chkTimerPeriod(this), chkNetBlocksTimer(thi
 Nb_p_recv_Module::~Nb_p_recv_Module(){
 	nbp__destablish(conn);
 	chkNetBlocksTimer.force_cancel();
+	chkTimerPeriod.force_cancel();
 }
 
 int Nb_p_recv_Module::recvSyncClMsg(ClMessage *m)
@@ -109,7 +111,6 @@ void Nb_p_recv_Module::recv(Packet *p)
 	if(ch->direction() != hdr_cmn::UP) {
 		std::cerr << "Something weird here, packet direction is not UP" << std::endl;
 	} else {
-		fprintf(stderr, "this = %lu, Received packet recvBufLen = %lu, READ_BUF_LEN = %lu\n", (uint64_t) this, recvBufLen, READ_BUF_LEN);
 		assert(recvBufLen < READ_BUF_LEN);
 		recvBuf[recvBufLen] = p;
 		recvBufLen++;
@@ -123,24 +124,22 @@ void Nb_p_recv_Module::start_gen(void) {
 
 void Nb_p_recv_Module::stop_gen(void) {
 	chkTimerPeriod.force_cancel();
+	chkNetBlocksTimer.force_cancel();
 }
 
 void Nb_p_recv_Module::uwSendTimerAppl::expire(Event *e)
 {
-	m_->sendPkt(); //TODO: This packet/video sending should be seperate from the 
-	m_->chkTimerPeriod.resched(120.0); // schedule next transmission
+	if (isNbp_) {
+		nbp__main_loop_step();
+		m_->chkNetBlocksTimer.resched(10);
+	} else {
+		m_->sendPkt(); //TODO: This packet/video sending should be seperate from the 
+		m_->chkTimerPeriod.resched(120.0); // schedule next transmission
+	}
 }
 static int uidcnt_ = 0;
 void Nb_p_recv_Module::sendPkt(void) {
-
-	// Packet *p = Packet::alloc();
-	// hdr_cmn *ch = hdr_cmn::access(p);
-	// ch->uid() = uidcnt_++;
-	// ch->ptype() = 2;
-	// ch->size() = 125;
-	nbp__send_packet("Hello World", sizeof("Hello World"));
-	nbp__main_loop_step();
-	// sendDown(p,0);
+	nbp__send(conn, "Client says hello", sizeof("Client says hello"));
 }
 
 double Nb_p_recv_Module::getSentPkts(void) {

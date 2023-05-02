@@ -74,17 +74,17 @@ public:
 		sendDown(p, delay);
 	}
 	inline Packet** getRecvBuf(size_t* len) {
-		fprintf(stderr, "getRecvBuf called\n");
+		// fprintf(stderr, "getRecvBuf called\n");
 		*len = recvBufLen;
 		return recvBuf;
 	}
 	void setRecvBufLen(size_t n) {
-		fprintf(stderr, "setRecvBufLen called, n = %lu\n", n);
+		// fprintf(stderr, "setRecvBufLen called, n = %lu\n", n);
 		recvBufLen = n;
-		fprintf(stderr, "recvBufLen = %lu\n",recvBufLen);
+		// fprintf(stderr, "recvBufLen = %lu\n",recvBufLen);
 	}
 	int getRecvBufLen(void) {
-		fprintf(stderr, "getRecvBufLen called\n");
+		// fprintf(stderr, "getRecvBufLen called\n");
 		return recvBufLen;
 	}
 
@@ -93,10 +93,11 @@ protected:
 	class uwSendTimerAppl : public TimerHandler
 	{
 	public:
-		uwSendTimerAppl(Nb_p_recv_Module *m)
+		uwSendTimerAppl(Nb_p_recv_Module *m, bool isNbp)
 			: TimerHandler()
 		{
 			m_ = m;
+			isNbp_ = isNbp;
 		}
 
 		virtual ~uwSendTimerAppl()
@@ -106,6 +107,7 @@ protected:
 	protected:
 		virtual void expire(Event *e);
 		Nb_p_recv_Module *m_;
+		bool isNbp_;
 	}; // End uwSendTimer class
 
 	// Functions to start and stop generation
