@@ -48,21 +48,23 @@ Nb_p_recv_Module::Nb_p_recv_Module():chkTimerPeriod(this, false), chkNetBlocksTi
 	nbp__net_init();
 	char server_id[] = {0, 0, 0, 0, 0, 1};
 	char client_id[] = {0, 0, 0, 0, 0, 2};
-	std::cout << "server_id = " << server_id << std::endl;
+	// std::cout << "server_id = " << server_id << std::endl;
 	memcpy(nbp__my_host_id, client_id, 6);
-	std::cout << "nbp__my_host_id = " << nbp__my_host_id << std::endl;
-	conn = nbp__establish(server_id, 8080, 8081, callback);
-	std::cout << "conn = " << conn << std::endl;
+	// std::cout << "nbp__my_host_id = " << nbp__my_host_id << std::endl;
+	send_conn = nbp__establish(server_id, 8080, 8081, callback);
+	recv_conn = nbp__establish(client_id, 8081, 8080, callback);
+	// std::cout << "conn = " << conn << std::endl;
 
 	chkNetBlocksTimer.resched(10.0);
-	chkTimerPeriod.resched(120.0);
+	chkTimerPeriod.resched(1200.0);
 
 	recvBuf = (Packet**) calloc(READ_BUF_LEN, sizeof(Packet*));
 	recvBufLen = 0;
 }
 
 Nb_p_recv_Module::~Nb_p_recv_Module(){
-	nbp__destablish(conn);
+	nbp__destablish(send_conn);
+	nbp__destablish(recv_conn);
 	chkNetBlocksTimer.force_cancel();
 	chkTimerPeriod.force_cancel();
 }
@@ -139,7 +141,7 @@ void Nb_p_recv_Module::uwSendTimerAppl::expire(Event *e)
 }
 static int uidcnt_ = 0;
 void Nb_p_recv_Module::sendPkt(void) {
-	nbp__send(conn, "Client says hello", sizeof("Client says hello"));
+	nbp__send(send_conn, "Client says hello", sizeof("Client says hello"));
 }
 
 double Nb_p_recv_Module::getSentPkts(void) {

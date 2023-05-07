@@ -123,7 +123,8 @@ protected:
 	virtual double getHeaderSize(void);
 	uwSendTimerAppl chkTimerPeriod;
 	uwSendTimerAppl chkNetBlocksTimer;
-	nbp__connection_t * conn;
+	nbp__connection_t * send_conn;
+	nbp__connection_t * recv_conn;
 #define READ_BUF_LEN 1000
 	Packet** recvBuf;
 	size_t recvBufLen;
