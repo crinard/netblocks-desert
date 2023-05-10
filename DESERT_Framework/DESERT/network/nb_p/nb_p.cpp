@@ -9,10 +9,14 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include <fstream>
+#include <string>
 
 #include "nb_p.h"
 #include "nb_runtime.h"
-// #include "net-blocks/scratch/gen_headers.h"
+#define MAX_TX_LEN 10000
+#define TELEM_FILE_PATH "/home/chris/Desktop/sample_telem.txt" 
+#define VIDEO_FILE_PATH "/home/chris/Desktop/sample_video.mp4" //TODO: Fix this
 extern char nb__my_host_id[];
 
 /**
@@ -32,14 +36,21 @@ public:
 		return (new Nb_pModule);
 	}
 } class_nb_p_module;
-int running = 1;
+
+static int recvd_packets = 0;
+static size_t recvd_bytes = 0;
+static int sent_packets = 0;
+static int sent_bytes = 0;
+
 static void callback(int event, nb__connection_t * c) {
+	fprintf(stderr, "NB callback, conn = %p\n", c);
 	if (event == QUEUE_EVENT_READ_READY) {
-		char buff[65];
-		int len = nb__read(c, buff, 64);
+		char buff[1000];
+		int len = nb__read(c, buff, 1000);
 		buff[len] = 0;	
 		printf("Server recieved %s from client\n", buff);	
-		running = 0;
+		recvd_packets++;
+		recvd_bytes += len;
 	}
 }
 
@@ -49,17 +60,18 @@ Nb_pModule::Nb_pModule():chkTimerPeriod(this, false), chkNetBlocksTimer(this, tr
 	char server_id[] = {0, 0, 0, 0, 0, 1};
 	char client_id[] = {0, 0, 0, 0, 0, 2};
 	memcpy(nb__my_host_id, server_id, 6);
-	recv_conn = nb__establish(client_id, 8081, 8080, callback);
-	send_conn = nb__establish(client_id, 8081, 8080, callback);
+	conn = nb__establish(client_id, 8080, 8081, callback);
+	fprintf(stderr, "NB conn = %p\n", conn);
 	chkNetBlocksTimer.resched(10.0);
-	chkTimerPeriod.resched(1200.0);
+	chkTimerPeriod.resched(60.0);
 	recvBuf = (Packet**) calloc(READ_BUF_LEN, sizeof(Packet*));
 	recvBufLen = 0;
+	sim_type = NOT_SET;
+	is_compressed = false;
 }
 
 Nb_pModule::~Nb_pModule(){
-	nb__destablish(send_conn);
-	nb__destablish(recv_conn);
+	nb__destablish(conn);
 	chkNetBlocksTimer.force_cancel();
 	chkTimerPeriod.force_cancel();
 }
@@ -93,11 +105,26 @@ int Nb_pModule::command(int argc, const char *const *argv)
 		} else if (strcasecmp(argv[1], "getdelay") == 0) {
 			tcl.resultf("%f", getDelay());
 			return TCL_OK;
-		} else if (strcasecmp(argv[1], "getthroughput") == 0) {
-			tcl.resultf("%f", getThroughput());
-			return TCL_OK;
 		} else if (strcasecmp(argv[1], "getheadersize") == 0) {
 			tcl.resultf("%f", getHeaderSize());
+			return TCL_OK;
+		} else if (strcasecmp(argv[1], "settelem") == 0) {
+			if (set_mode_telem()) return TCL_OK;
+			return TCL_ERROR;
+		} else if (strcasecmp(argv[1], "setvideostream") == 0) {
+			if (set_mode_video()) return TCL_OK;
+			return TCL_ERROR;
+		} else if (strcasecmp(argv[1], "setcompressed") == 0) {
+			set_compressed(1);
+			return TCL_OK;
+		} else if (strcasecmp(argv[1], "setnocompression") == 0) {
+			set_compressed(0);
+			return TCL_OK;
+		} else if (strcasecmp(argv[1], "getrecvbytes") == 0) {
+			tcl.resultf("%f", getRecvBytes());
+			return TCL_OK;
+		} else if (strcasecmp(argv[1], "getsentbytes") == 0) {
+			tcl.resultf("%f", getSentBytes());
 			return TCL_OK;
 		}
 	}
@@ -113,13 +140,12 @@ void Nb_pModule::recv(Packet *p)
 		assert(recvBufLen < READ_BUF_LEN);
 		recvBuf[recvBufLen] = p;
 		recvBufLen++;
-		std::cerr << "Packet recieved, recvBufLen = " << recvBufLen << std::endl;
 	}
 	return;
 }
 
 void Nb_pModule::start_gen(void) {
-	chkTimerPeriod.resched(120.0);
+	chkTimerPeriod.resched(60.0);
 }
 
 void Nb_pModule::stop_gen(void) {
@@ -134,31 +160,113 @@ void Nb_pModule::uwSendTimerAppl::expire(Event *e)
 		nb__main_loop_step();
 		m_->chkNetBlocksTimer.resched(10.0);
 	} else {
-		m_->sendPkt(); //TODO: This packet/video sending should be seperate from the 
-		m_->chkTimerPeriod.resched(120.0); // schedule next transmission
+		std::cerr << "send packet from server\n";
+		m_->sendPkt();
+		m_->chkTimerPeriod.resched(60.0); // schedule next transmission
 	}
 }
 
-static int uidcnt_ = 0;
 void Nb_pModule::sendPkt(void) {
-	nb__send(send_conn, "Hello from Server", sizeof("Hello from Server"));
+	if (sim_type == NOT_SET) {
+		std::cerr << "sim_type not set\n";
+		nb__send(conn, "Hello from ServerHello from ServerHello from ServerHello from ServerHello from ServerHello from Server", sizeof("Hello from ServerHello from ServerHello from ServerHello from ServerHello from ServerHello from Server"));
+		sent_packets++;
+		sent_bytes += sizeof("Hello from ServerHello from ServerHello from ServerHello from ServerHello from ServerHello from Server");
+		return;
+	} else if (sim_type == VIDEO_STREAM) {
+		int len = MAX_TX_LEN;
+		char* buff = genVideoPkt(&len);
+		assert(len < MAX_TX_LEN);
+		nb__send(conn, buff, len);
+		sent_packets++;
+		sent_bytes += len;
+	} else if (sim_type == CONTROL_STREAM) {
+		int len = MAX_TX_LEN;
+		char* buff = genTelemPkt(&len);
+		if (len > MAX_TX_LEN) {assert(false);}
+		std::cerr << "send telem pkt, len = " << len << "\n";
+		nb__send(conn, buff, len);
+		free(buff);
+		sent_packets++;
+		sent_bytes += len;
+	}
+}
+
+char* Nb_pModule::genVideoPkt(int * size) {
+	std::string lines[1000];
+	std::ifstream myfile(VIDEO_FILE_PATH);
+	int a = 0;
+	if(!myfile) {
+		std::cerr << "VIDEO FILE NOT FOUND\n";
+		return NULL;
+	}
+	if (!myfile.eof()) {
+		getline(myfile, lines[a],'\n');
+		a++;
+	}
+	char* buf = (char*)malloc(lines[a].size());
+	memcpy(buf, lines[a].c_str(), lines[a].size());		
+	*size = lines[a].size();		
+	return buf;
+}
+static int a = 0;
+char* Nb_pModule::genTelemPkt(int * size) {
+	if (a > 1000) {
+		*size = 0;
+		return NULL;
+	}
+	std::ifstream fin(TELEM_FILE_PATH);
+	a++;
+	std::string tmp;
+	if(!fin) {
+		std::cerr << "TELEM FILE NOT FOUND\n";
+		return NULL;
+	}
+	for (int i = 0; ((i < a) && !fin.eof()); i++) {
+		getline(fin, tmp, '\n');
+	}
+	char* buf = (char*)malloc(tmp.size());
+	memcpy(buf, tmp.c_str(), tmp.size());		
+	*size = tmp.size();
+	// std::cout << "telem packet size: " << *size << std::endl;
+	fin.close();
+	return buf;
 }
 
 double Nb_pModule::getSentPkts(void) {
-	return 0.0;
+	return sent_packets;
 }
 double Nb_pModule::getRecvPkts(void) {
-	return 0.0;
+	return recvd_packets;
 }
+
 double Nb_pModule::getDropPkts(void) {
 	return 0.0;
 }
 double Nb_pModule::getDelay(void) {
 	return 0.0;
 }
-double Nb_pModule::getThroughput(void) {
-	return 0.0;
+double Nb_pModule::getRecvBytes(void) {
+	return recvd_bytes;
 }
 double Nb_pModule::getHeaderSize(void) {
 	return 0.0;
+}
+bool Nb_pModule::set_mode_telem(void) {
+	if (sim_type != NOT_SET)
+		return false;
+	sim_type = CONTROL_STREAM;
+	return true;
+}
+bool Nb_pModule::set_mode_video(void) {
+	if (sim_type != NOT_SET)
+		return false;
+	sim_type = VIDEO_STREAM;
+	return true;
+}
+void Nb_pModule::set_compressed(bool c) {
+	is_compressed = c;
+}
+double Nb_pModule::getSentBytes(void) {
+	return sent_bytes;
 }

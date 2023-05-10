@@ -31,40 +31,42 @@ public:
 		return (new Nb_p_recv_Module);
 	}
 } class_nb_p_recv_module;
-int running = 1;
+
+static int recvd_packets = 0;
+static size_t recvd_bytes = 0;
+static int sent_packets = 0;
+static int sent_bytes = 0;
+static int dropped_packets = 0;
+static nbp__connection_t * s_c = NULL;
 static void callback(int event, nbp__connection_t * c) {
-	if (event == QUEUE_EVENT_READ_READY) {
-		char buff[65];
-		int len = nbp__read(c, buff, 64);
+	fprintf(stderr, "NBP callback, conn = %p\n", c);
+	if ((event == QUEUE_EVENT_READ_READY) && (c == s_c)) {
+		char buff[1000];
+		int len = nbp__read(c, buff, 1000);
 		buff[len] = 0;	
 		fprintf(stderr, "Client received = %s from server\n", buff);	
-		running = 0;
+		recvd_packets++;
+		recvd_bytes += len;
 	}
 }
 
 Nb_p_recv_Module::Nb_p_recv_Module():chkTimerPeriod(this, false), chkNetBlocksTimer(this, true) {
-	// std::cout << "Nb_p RECIEVE MODULE INIT" << std::endl;
 	nbp__desert_init((void*)this);
 	nbp__net_init();
 	char server_id[] = {0, 0, 0, 0, 0, 1};
 	char client_id[] = {0, 0, 0, 0, 0, 2};
-	// std::cout << "server_id = " << server_id << std::endl;
 	memcpy(nbp__my_host_id, client_id, 6);
-	// std::cout << "nbp__my_host_id = " << nbp__my_host_id << std::endl;
-	send_conn = nbp__establish(server_id, 8080, 8081, callback);
-	recv_conn = nbp__establish(client_id, 8081, 8080, callback);
-	// std::cout << "conn = " << conn << std::endl;
-
-	chkNetBlocksTimer.resched(10.0);
-	chkTimerPeriod.resched(1200.0);
-
+	conn = nbp__establish(server_id, 8081, 8080, callback);
+	fprintf(stderr, "NBP conn = %p\n", conn);
+	chkNetBlocksTimer.resched(60.0);
+	chkTimerPeriod.resched(120.0);
+	s_c = conn;
 	recvBuf = (Packet**) calloc(READ_BUF_LEN, sizeof(Packet*));
 	recvBufLen = 0;
 }
 
 Nb_p_recv_Module::~Nb_p_recv_Module(){
-	nbp__destablish(send_conn);
-	nbp__destablish(recv_conn);
+	nbp__destablish(conn);
 	chkNetBlocksTimer.force_cancel();
 	chkTimerPeriod.force_cancel();
 }
@@ -102,10 +104,17 @@ int Nb_p_recv_Module::command(int argc, const char *const *argv)
 		} else if (strcasecmp(argv[1], "getheadersize") == 0) {
 			tcl.resultf("%f", getHeaderSize());
 			return TCL_OK;
+		} else if (strcasecmp(argv[1], "getrecvbytes") == 0) {
+			tcl.resultf("%f", getRecvBytes());
+			return TCL_OK;
+		} else if (strcasecmp(argv[1], "getsentbytes") == 0) {
+			tcl.resultf("%f", getSentBytes());
+			return TCL_OK;
 		}
 	}
 	return Module::command(argc, argv);
 }
+static size_t recv_count = 0;
 
 void Nb_p_recv_Module::recv(Packet *p)
 {
@@ -113,6 +122,13 @@ void Nb_p_recv_Module::recv(Packet *p)
 	if(ch->direction() != hdr_cmn::UP) {
 		std::cerr << "Something weird here, packet direction is not UP" << std::endl;
 	} else {
+		recv_count++;
+		if (recvBufLen >= READ_BUF_LEN) {
+			std::cerr << "Buffer overflow, dropping packet\n";
+			dropped_packets++;
+			drop(p, 1, "Buffer overflow");
+			return;
+		}
 		assert(recvBufLen < READ_BUF_LEN);
 		recvBuf[recvBufLen] = p;
 		recvBufLen++;
@@ -133,32 +149,41 @@ void Nb_p_recv_Module::uwSendTimerAppl::expire(Event *e)
 {
 	if (isNbp_) {
 		nbp__main_loop_step();
-		m_->chkNetBlocksTimer.resched(10);
+		m_->chkNetBlocksTimer.resched(10.0);
 	} else {
-		m_->sendPkt(); //TODO: This packet/video sending should be seperate from the 
-		m_->chkTimerPeriod.resched(120.0); // schedule next transmission
+		// m_->sendPkt(); //TODO: This packet/video sending should be seperate from the 
+		m_->chkTimerPeriod.resched(100.0); // schedule next transmission
 	}
 }
 static int uidcnt_ = 0;
 void Nb_p_recv_Module::sendPkt(void) {
-	nbp__send(send_conn, "Client says hello", sizeof("Client says hello"));
+	// nbp__send(conn, "Client says hello", sizeof("Client says hello"));
+	// sent_packets++;
+	// sent_bytes+=sizeof("Client says hello");
 }
 
 double Nb_p_recv_Module::getSentPkts(void) {
-	return 0.0;
+	return sent_packets;
 }
 double Nb_p_recv_Module::getRecvPkts(void) {
-	return 0.0;
+	return recvd_packets;
 }
 double Nb_p_recv_Module::getDropPkts(void) {
-	return 0.0;
+	return dropped_packets;
 }
 double Nb_p_recv_Module::getDelay(void) {
 	return 0.0;
 }
 double Nb_p_recv_Module::getThroughput(void) {
-	return 0.0;
+	std::cerr << "recv_count = " << recv_count << std::endl;
+	return recv_count;
 }
 double Nb_p_recv_Module::getHeaderSize(void) {
 	return 0.0;
+}
+double Nb_p_recv_Module::getRecvBytes(void) {
+	return recvd_bytes;
+}
+double Nb_p_recv_Module::getSentBytes(void) {
+	return sent_bytes;
 }

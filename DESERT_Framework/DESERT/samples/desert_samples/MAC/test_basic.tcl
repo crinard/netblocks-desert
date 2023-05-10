@@ -39,7 +39,15 @@
 #
 # Stack of the nodes
 #   +-------------------------+
-#   |  3. UW/nb_p             |
+#   |  7. UW/CBR              |
+#   +-------------------------+
+#   |  6. UW/UDP              |
+#   +-------------------------+
+#   |  5. UW/STATICROUTING    |
+#   +-------------------------+
+#   |  4. UW/IP               |
+#   +-------------------------+
+#   |  3. UW/MLL              |
 #   +-------------------------+
 #   |  2. UW/CSMA_ALOHA       |
 #   +-------------------------+
@@ -70,8 +78,6 @@ load libuwstaticrouting.so
 load libuwmll.so
 load libuwudp.so
 load libuwnetblocks.so
-load libnb_p.so
-load libnb_p_recv.so
 load libuwcbr.so
 load libuwcsmaaloha.so
 
@@ -86,8 +92,9 @@ $ns use-Miracle
 # Tcl variables  #
 ##################
 set opt(nn)                 2.0 ;# Number of Nodes
+set opt(pktsize)            125  ;# Pkt sike in byte
 set opt(starttime)          1	
-set opt(stoptime)           20000
+set opt(stoptime)           20000 
 set opt(txduration)         [expr $opt(stoptime) - $opt(starttime)] ;# Duration of the simulation
 set opt(txpower)            180.0  ;#Power transmitted in dB re uPa
 set opt(maxinterval_)       20.0
@@ -95,7 +102,8 @@ set opt(freq)               25000.0 ;#Frequency used in Hz
 set opt(bw)                 5000.0	;#Bandwidth used in Hz
 set opt(bitrate)            4800.0	;#bitrate in bps
 set opt(ack_mode)           "setAckMode"
-set opt(cbr_period) 120
+set opt(cbr_period) 60
+set opt(pktsize)	125
 set opt(rngstream)	1
 
 
@@ -113,6 +121,7 @@ if {$opt(bash_parameters)} {
 	} else {
 		set opt(rngstream)    [lindex $argv 0]
 		set opt(cbr_period) [lindex $argv 1]
+		set opt(pktsize)    [lindex $argv 2]
 	}
 }
 
@@ -142,6 +151,10 @@ $data_mask setBandwidth  $opt(bw)
 #########################
 # Module Configuration  #
 #########################
+Module/UW/CBR set packetSize_          $opt(pktsize)
+Module/UW/CBR set period_              $opt(cbr_period)
+Module/UW/CBR set PoissonTraffic_      1
+Module/UW/CBR set debug_               0
 
 Module/MPhy/BPSK  set TxPower_               $opt(txpower)
 
@@ -150,27 +163,39 @@ Module/MPhy/BPSK  set TxPower_               $opt(txpower)
 ################################
 proc createNode { id } {
 
-    global channel propagation data_mask ns cbr position node udp portnum ipr ipif channel_estimator prnt
+    global channel propagation data_mask ns cbr position node udp portnum ipr ipif channel_estimator
     global phy posdb opt rvposx rvposy rvposz mhrouting mll mac woss_utilities woss_creator db_manager
     global node_coordinates
     
     set node($id) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
-    if {$id == 0} {
-        puts "Creating node 0"
-        set prnt($id)  [new Module/UW/Nb_p_recv]
-    } else {
-        puts "Creating node 1"
-        set prnt($id)  [new Module/UW/Nb_p]
-    }
+	for {set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
+		set cbr($id,$cnt)  [new Module/UW/CBR] 
+		set udp($id,$cnt)  [new Module/UW/UDP]
+	}
+    set ipr($id)  [new Module/UW/StaticRouting]
+    set ipif($id) [new Module/UW/IP]
+    set mll($id)  [new Module/UW/MLL] 
     set mac($id)  [new Module/UW/CSMA_ALOHA] 
     set phy($id)  [new Module/MPhy/BPSK]  
 	
-
-    $node($id) addModule 3 $prnt($id)   1  "PRNT"
+	for {set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
+		$node($id) addModule 7 $cbr($id,$cnt)   1  "CBR"
+		$node($id) addModule 6 $udp($id,$cnt)   1  "UDP"
+	}
+    $node($id) addModule 5 $ipr($id)   1  "IPR"
+    $node($id) addModule 4 $ipif($id)  1  "IPF"   
+    $node($id) addModule 3 $mll($id)   1  "MLL"
     $node($id) addModule 2 $mac($id)   1  "MAC"
     $node($id) addModule 1 $phy($id)   1  "PHY"
 
-    $node($id) setConnection $prnt($id)   $mac($id)   0
+	for {set cnt 0} {$cnt < $opt(nn)} {incr cnt} {
+		$node($id) setConnection $cbr($id,$cnt)   $udp($id,$cnt)   0
+		$node($id) setConnection $udp($id,$cnt)   $ipr($id)   0
+		set portnum($id,$cnt) [$udp($id,$cnt) assignPort $cbr($id,$cnt) ]
+	}
+    $node($id) setConnection $ipr($id)   $ipif($id)  1
+    $node($id) setConnection $ipif($id)  $mll($id)   1
+    $node($id) setConnection $mll($id)   $mac($id)   1
     $node($id) setConnection $mac($id)   $phy($id)   1
     $node($id) addToChannel  $channel    $phy($id)   1
 
@@ -179,12 +204,14 @@ proc createNode { id } {
 		exit
     }
     #Set the IP address of the node
+    set ip_value [expr $id + 1]
+    $ipif($id) addr $ip_value
     
     set position($id) [new "Position/BM"]
     $node($id) addPosition $position($id)
     set posdb($id) [new "PlugIn/PositionDB"]
     $node($id) addPlugin $posdb($id) 20 "PDB"
-    # $posdb($id) addpos [$ipif($id) addr] $position($id)
+    $posdb($id) addpos [$ipif($id) addr] $position($id)
     
     #Setup positions
     $position($id) setX_ [expr $id*200]
@@ -213,17 +240,58 @@ for {set id 0} {$id < $opt(nn)} {incr id}  {
     createNode $id
 }
 
-$prnt(1) settelem
+
+################################
+# Inter-node module connection #
+################################
+proc connectNodes {id1 des1} {
+    global ipif ipr portnum cbr cbr_sink ipif_sink ipr_sink opt 
+
+    $cbr($id1,$des1) set destAddr_ [$ipif($des1) addr]
+    $cbr($id1,$des1) set destPort_ $portnum($des1,$id1)
+
+    $cbr($des1,$id1) set destAddr_ [$ipif($id1) addr]
+    $cbr($des1,$id1) set destPort_ $portnum($id1,$des1) 
+
+}
+
+##################
+# Setup flows    #
+##################
+connectNodes 0 1
+
+##################
+# ARP tables     #
+##################
+for {set id1 0} {$id1 < $opt(nn)} {incr id1}  {
+    for {set id2 0} {$id2 < $opt(nn)} {incr id2}  {
+      $mll($id1) addentry [$ipif($id2) addr] [$mac($id2) addr]
+	}
+}
+
+
+
+##################
+# Routing tables #
+##################
+for {set id1 0} {$id1 < $opt(nn)} {incr id1}  {
+	for {set id2 0} {$id2 < $opt(nn)} {incr id2}  {
+        if {$id1 != $id2} {
+			$ipr($id1) addRoute [$ipif($id2) addr] [$ipif($id2) addr]
+            puts "Node $id1: route to $id2 via [$ipif($id2) addr]"
+        }
+	}
+}
+
 
 #####################
 # Start/Stop Timers #
 #####################
 # Set here the timers to start and/or stop modules (optional)
 # e.g., 
-for {set id1 0} {$id1 < $opt(nn)} {incr id1}  {
-    $ns at $opt(starttime)    "$prnt($id1) start"
-    $ns at $opt(stoptime)     "$prnt($id1) stop"
-}
+$ns at $opt(starttime)    "$cbr(0,1) start"
+$ns at $opt(stoptime)     "$cbr(0,1) stop"
+
 
 ###################
 # Final Procedure #
@@ -231,15 +299,16 @@ for {set id1 0} {$id1 < $opt(nn)} {incr id1}  {
 # Define here the procedure to call at the end of the simulation
 proc finish {} {
     global ns opt outfile
-    global mac propagation cbr_sink mac_sink phy_data phy_data_sink channel db_manager propagation prnt
+    global mac propagation cbr_sink mac_sink phy_data phy_data_sink channel db_manager propagation
     global node_coordinates
-    global ipr_sink ipr ipif udp cbr phy phy_data_sink prnt
+    global ipr_sink ipr ipif udp cbr phy phy_data_sink
     global node_stats tmp_node_stats sink_stats tmp_sink_stats
     if ($opt(verbose)) {
         puts "---------------------------------------------------------------------"
         puts "Simulation summary"
         puts "number of nodes  : $opt(nn)"
-        # puts "app_period       : $opt(app_period) s"
+        puts "packet size      : $opt(pktsize) byte"
+        puts "cbr period       : $opt(cbr_period) s"
         puts "number of nodes  : $opt(nn)"
         puts "simulation length: $opt(txduration) s"
         puts "tx power         : $opt(txpower) dB"
@@ -248,13 +317,27 @@ proc finish {} {
         puts "bitrate          : $opt(bitrate) bps"
         puts "---------------------------------------------------------------------"
     }
-    set sum_throughput     0
     set sum_per                0
-    set sum_sent_pkts      0.0
-    set sum_rcv_pkts       0.0    
-
-    for {set i 0} {$i < $opt(nn)} {incr i}  {
-        puts "node $i [$prnt($i) getrecvpkts] recieved packets, [$prnt($i) getrecvbytes] bytes recieved, [$prnt($i) getsentpkts] sent packets, [$prnt($i) getsentbytes] bytes sent, [$prnt($i) getdroppkts] dropped packets"
+    set sum_cbr_sent_pkts      0.0
+    set sum_cbr_rcv_pkts       0.0    
+    set cbr_throughput           [$cbr(0,1) getthr]
+    set cbr_sent_pkts        [$cbr(0,1) getsentpkts]
+    set cbr_rcv_pkts           [$cbr(1,0) getrecvpkts]
+    set sum_cbr_sent_pkts [expr $sum_cbr_sent_pkts + $cbr_sent_pkts]
+    set sum_cbr_rcv_pkts  [expr $sum_cbr_rcv_pkts + $cbr_rcv_pkts]
+        
+    set ipheadersize        [$ipif(1) getipheadersize]
+    set udpheadersize       [$udp(0,1) getudpheadersize]
+    set cbrheadersize       [$cbr(0,1) getcbrheadersize]
+    
+    if ($opt(verbose)) {
+        puts "Sent Packets             : $sum_cbr_sent_pkts"
+        puts "Received Packets         : $sum_cbr_rcv_pkts"
+        #puts "Packet Delivery Ratio    : [expr $sum_cbr_rcv_pkts / $sum_cbr_sent_pkts * 100]"
+        puts "IP Pkt Header Size       : $ipheadersize"
+        puts "UDP Header Size          : $udpheadersize"
+        puts "CBR Header Size          : $cbrheadersize"
+        puts "done!"
     }
     
     $ns flush-trace

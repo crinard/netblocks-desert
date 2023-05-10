@@ -79,9 +79,8 @@ public:
 		return recvBuf;
 	}
 	void setRecvBufLen(size_t n) {
-		// fprintf(stderr, "setRecvBufLen called, n = %lu\n", n);
 		recvBufLen = n;
-		// fprintf(stderr, "recvBufLen = %lu\n",recvBufLen);
+		fprintf(stderr, "setRecvBufLen called, n = %zu\n",recvBufLen);
 	}
 	int getRecvBufLen(void) {
 		// fprintf(stderr, "getRecvBufLen called\n");
@@ -123,11 +122,12 @@ protected:
 	virtual double getHeaderSize(void);
 	uwSendTimerAppl chkTimerPeriod;
 	uwSendTimerAppl chkNetBlocksTimer;
-	nbp__connection_t * send_conn;
-	nbp__connection_t * recv_conn;
+	nbp__connection_t * conn;
 #define READ_BUF_LEN 1000
 	Packet** recvBuf;
 	size_t recvBufLen;
+	virtual double getRecvBytes(void);
+	virtual double getSentBytes(void);
 };
 
 #endif // _NB_P_H_
