@@ -84,64 +84,23 @@ ARGS=$(getopt -o $shortOpt   \
               -n "install.sh" \
               -- "$@");
 RETOPT_GETOPT=$?
-if [ "${_DEBUG}" = "1" ]; then
-    debug__print_screen_L1 "RETURN CODE of GETOPT = ${RETOPT_GETOPT}"
-fi
 
-if [ "${_DEBUG}" = "1" ]; then
-    debug__print_screen_L1 "AFTER GETOPT: \t\t$@"
-fi
 
-#Bad arguments after getopt --
-if [ ${RETOPT_GETOPT} -ne 0 ]; then
-    install__print_help
-    logERR "some parameters are not correct" ${INSTALL_LOG}
-    exit 1
-fi
+DEST_FOLDER="/home/chris/Desktop/DESERT_Underwater/DESERT_buildCopy_LOCAL"
+BUILD_HOST="${DEST_FOLDER}/.buildHost"
+BUILD_TARGET="${DEST_FOLDER}/.buildTarget"
+TARGET="LOCAL"
+INST_MODE="development"
+BUILD_HOST="/home/chris/Desktop/DESERT_Underwater/DESERT_buildCopy_LOCAL/.buildHost"
+BUILD_TARGET="/home/chris/Desktop/DESERT_Underwater/DESERT_buildCopy_LOCAL/.buildTarget"
+CUSTOM_PAR=""
+ADDONS=""
 
-#Getopt setting --
-eval set -- "$ARGS";
-if [ "${_DEBUG}" = "1" ]; then
-    debug__print_screen_L1 "AFTER SET -- \$ARGS: \t$@"
-fi
-while true; do
-    case "$1" in
-        -a|--wizard)
-            shift;
-            OWNER_PERMISSION=0
-            ADDONS_FILE=".addon.list"
-            _WIZARD_OPT=1
-            log_L1 "_WIZARD_OPT=${_WIZARD_OPT}" ${INSTALL_LOG}
-            if [ -n "$1" ]; then
-                if [ "${_DEBUG}" = "1" ]; then
-                    debug__print_screen_L1 "_WIZARD_OPT=${_WIZARD_OPT}"
-                    debug__print_screen_L1 "OWNER_PERMISSION=${OWNER_PERMISSION}"
-                    debug__print_screen_L1 "no parameter for --wizard option"
-                fi
-                #shift
-            fi
-            DEST_FOLDER="/home/chris/Desktop/DESERT_Underwater/DESERT_buildCopy_LOCAL"
-            BUILD_HOST="${DEST_FOLDER}/.buildHost"
-            BUILD_TARGET="${DEST_FOLDER}/.buildTarget"
-            TARGET="LOCAL"
-            INST_MODE="development"
-            BUILD_HOST="/home/chris/Desktop/DESERT_Underwater/DESERT_buildCopy_LOCAL/.buildHost"
-            BUILD_TARGET="/home/chris/Desktop/DESERT_Underwater/DESERT_buildCopy_LOCAL/.buildTarget"
-            CUSTOM_PAR=""
-            ADDONS=""
-            break;
-            ;;
-    esac
-done
 
 #***
 # internal settings
 #
 #*
-
-if [ "${_DEBUG}" = "1" ]; then
-    debug__print_parameters
-fi
 
 info_L0 "make_dir"
 make_dir_modified
@@ -149,6 +108,13 @@ if [ $? -ne 0 ]; then
     err_L1 "EXIT FROM install.sh"
     exit
 fi
+
+current_dir=$PWD
+cd $current_dir/DESERT/network/nb_p/net-blocks/
+make simple_desert
+cd $current_dir/DESERT/network/nb_p_recv/net-blocks/
+make simple_desert_nbp
+cd $current_dir
 
 info_L0 "call_installer"
 call_installer_modified
