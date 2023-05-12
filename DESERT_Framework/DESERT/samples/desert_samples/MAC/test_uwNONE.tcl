@@ -87,7 +87,7 @@ $ns use-Miracle
 ##################
 set opt(nn)                 2.0 ;# Number of Nodes
 set opt(starttime)          1	
-set opt(stoptime)           20000
+set opt(stoptime)           1000000
 set opt(txduration)         [expr $opt(stoptime) - $opt(starttime)] ;# Duration of the simulation
 set opt(txpower)            180.0  ;#Power transmitted in dB re uPa
 set opt(maxinterval_)       20.0
@@ -213,7 +213,7 @@ for {set id 0} {$id < $opt(nn)} {incr id}  {
     createNode $id
 }
 
-$prnt(1) settelem
+# $prnt(1) settelem
 
 #####################
 # Start/Stop Timers #

@@ -86,13 +86,13 @@ ARGS=$(getopt -o $shortOpt   \
 RETOPT_GETOPT=$?
 
 
-DEST_FOLDER="/home/chris/Desktop/DESERT_Underwater/DESERT_buildCopy_LOCAL"
+DEST_FOLDER="/home/crinard/Desktop/DESERT_Underwater/DESERT_buildCopy_LOCAL"
 BUILD_HOST="${DEST_FOLDER}/.buildHost"
 BUILD_TARGET="${DEST_FOLDER}/.buildTarget"
 TARGET="LOCAL"
 INST_MODE="development"
-BUILD_HOST="/home/chris/Desktop/DESERT_Underwater/DESERT_buildCopy_LOCAL/.buildHost"
-BUILD_TARGET="/home/chris/Desktop/DESERT_Underwater/DESERT_buildCopy_LOCAL/.buildTarget"
+BUILD_HOST="/home/crinard/Desktop/DESERT_Underwater/DESERT_buildCopy_LOCAL/.buildHost"
+BUILD_TARGET="/home/crinard/Desktop/DESERT_Underwater/DESERT_buildCopy_LOCAL/.buildTarget"
 CUSTOM_PAR=""
 ADDONS=""
 

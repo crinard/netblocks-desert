@@ -79,17 +79,17 @@ public:
 		sendDown(p, delay);
 	}
 	inline Packet** getRecvBuf(size_t* len) {
-		// fprintf(stderr, "getRecvBuf called\n");
+		// fprintf(stdout, "getRecvBuf called\n");
 		*len = recvBufLen;
 		return recvBuf;
 	}
 	void setRecvBufLen(size_t n) {
-		// fprintf(stderr, "setRecvBufLen called, n = %lu\n", n);
+		// fprintf(stdout, "setRecvBufLen called, n = %lu\n", n);
 		recvBufLen = n;
-		// fprintf(stderr, "recvBufLen = %lu\n", recvBufLen);
+		// fprintf(stdout, "recvBufLen = %lu\n", recvBufLen);
 	}
 	int getRecvBufLen(void) {
-		// fprintf(stderr, "getRecvBufLen called\n");
+		// fprintf(stdout, "getRecvBufLen called\n");
 		return recvBufLen;
 	}
 protected:

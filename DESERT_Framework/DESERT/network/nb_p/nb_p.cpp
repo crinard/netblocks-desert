@@ -15,8 +15,8 @@
 #include "nb_p.h"
 #include "nb_runtime.h"
 #define MAX_TX_LEN 10000
-#define TELEM_FILE_PATH "/home/chris/Desktop/sample_telem.txt" 
-#define VIDEO_FILE_PATH "/home/chris/Desktop/sample_video.mp4" //TODO: Fix this
+#define TELEM_FILE_PATH "/home/crinard/Desktop/sample_telem.txt" 
+#define VIDEO_FILE_PATH "/home/crinard/Desktop/sample_video.mp4" //TODO: Fix this
 extern char nb__my_host_id[];
 
 /**
@@ -43,7 +43,7 @@ static int sent_packets = 0;
 static int sent_bytes = 0;
 
 static void callback(int event, nb__connection_t * c) {
-	fprintf(stderr, "NB callback, conn = %p\n", c);
+	fprintf(stdout, "NB callback, conn = %p\n", c);
 	if (event == QUEUE_EVENT_READ_READY) {
 		char buff[1000];
 		int len = nb__read(c, buff, 1000);
@@ -61,7 +61,7 @@ Nb_pModule::Nb_pModule():chkTimerPeriod(this, false), chkNetBlocksTimer(this, tr
 	char client_id[] = {0, 0, 0, 0, 0, 2};
 	memcpy(nb__my_host_id, server_id, 6);
 	conn = nb__establish(client_id, 8080, 8081, callback);
-	fprintf(stderr, "NB conn = %p\n", conn);
+	fprintf(stdout, "NB conn = %p\n", conn);
 	chkNetBlocksTimer.resched(10.0);
 	chkTimerPeriod.resched(60.0);
 	recvBuf = (Packet**) calloc(READ_BUF_LEN, sizeof(Packet*));
@@ -133,6 +133,7 @@ int Nb_pModule::command(int argc, const char *const *argv)
 
 void Nb_pModule::recv(Packet *p)
 {
+	std::cerr << "NB_recieved Packet\n";
 	hdr_cmn *ch = HDR_CMN(p);
 	if(ch->direction() != hdr_cmn::UP) {
 		std::cerr << "Something weird here, packet direction is not UP" << std::endl;
@@ -157,8 +158,9 @@ void Nb_pModule::stop_gen(void) {
 void Nb_pModule::uwSendTimerAppl::expire(Event *e)
 {
 	if (isNb_) {
+		std::cerr << "NB Main Loop Step\n";
 		nb__main_loop_step();
-		m_->chkNetBlocksTimer.resched(10.0);
+		m_->chkNetBlocksTimer.resched(10);
 	} else {
 		std::cerr << "send packet from server\n";
 		m_->sendPkt();

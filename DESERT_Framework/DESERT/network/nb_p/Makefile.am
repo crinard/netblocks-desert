@@ -50,8 +50,8 @@ libnb_p_la_SOURCES = initlib.cpp\
     nb_p-default.tcl\
     nb_p.cpp
 
-libnb_p_la_CPPFLAGS = @NS_CPPFLAGS@ @NSMIRACLE_CPPFLAGS@ @DESERT_CPPFLAGS@ -I /home/chris/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/net-blocks/scratch/ -I /home/chris/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/net-blocks/runtime/nb_data_queue.h -I /home/chris/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/net-blocks/runtime -I /home/chris/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/net-blocks/scratch 
-#libnb_p_la_LDFLAGS =  @NS_LDFLAGS@ @NSMIRACLE_LDFLAGS@ @DESERT_LDFLAGS@ -L /home/chris/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/.build/ -lmynb_p
+libnb_p_la_CPPFLAGS = @NS_CPPFLAGS@ @NSMIRACLE_CPPFLAGS@ @DESERT_CPPFLAGS@ -I /home/crinard/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/net-blocks/scratch/ -I /home/crinard/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/net-blocks/runtime/nb_data_queue.h -I /home/crinard/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/net-blocks/runtime -I /home/crinard/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/net-blocks/scratch 
+#libnb_p_la_LDFLAGS =  @NS_LDFLAGS@ @NSMIRACLE_LDFLAGS@ @DESERT_LDFLAGS@ -L /home/crinard/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/.build/ -lmynb_p
 libnb_p_la_LDFLAGS =  @NS_LDFLAGS@ @NSMIRACLE_LDFLAGS@ @DESERT_LDFLAGS@
 
 # TODO: Add -L /home/netblcoks/build -lnetblocks #should be named libnetbloks.a -- should come at the end.
