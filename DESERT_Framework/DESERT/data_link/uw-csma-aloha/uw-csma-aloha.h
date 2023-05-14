@@ -804,6 +804,7 @@ protected:
 
 	ofstream fout; /**< Object that handles the output file where the protocol
 					  writes the state transistions */
+	int which_m;
 };
 
 #endif /* CSMA_H */

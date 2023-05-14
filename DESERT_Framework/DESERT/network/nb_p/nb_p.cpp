@@ -138,9 +138,15 @@ void Nb_pModule::recv(Packet *p)
 	if(ch->direction() != hdr_cmn::UP) {
 		std::cerr << "Something weird here, packet direction is not UP" << std::endl;
 	} else {
-		assert(recvBufLen < READ_BUF_LEN);
-		recvBuf[recvBufLen] = p;
-		recvBufLen++;
+		if (ch->size() == 125) {
+			std::cerr << "NB_recieved Packet with size 125\n";
+			Packet::free(p);
+		} else {
+			assert(recvBufLen < READ_BUF_LEN);
+			recvBuf[recvBufLen] = p;
+			recvBufLen++;
+		}
+		
 	}
 	return;
 }

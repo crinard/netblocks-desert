@@ -148,70 +148,95 @@ Module/MPhy/BPSK  set TxPower_               $opt(txpower)
 ################################
 # Procedure(s) to create nodes #
 ################################
-proc createNode { id } {
+proc createNodes {} {
 
     global channel propagation data_mask ns cbr position node udp portnum ipr ipif channel_estimator prnt
     global phy posdb opt rvposx rvposy rvposz mhrouting mll mac woss_utilities woss_creator db_manager
     global node_coordinates
     
-    set node($id) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
-    if {$id == 0} {
-        puts "Creating node 0"
-        set prnt($id)  [new Module/UW/Nb_p_recv]
-    } else {
-        puts "Creating node 1"
-        set prnt($id)  [new Module/UW/Nb_p]
-    }
-    set mac($id)  [new Module/UW/CSMA_ALOHA] 
-    set phy($id)  [new Module/MPhy/BPSK]  
+    set node(0) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
+    set node(1) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
+
+    set prnt(0)  [new Module/UW/Nb_p]
+    set prnt(1)  [new Module/UW/Nb_p_recv]
+    set mac(0)  [new Module/UW/CSMA_ALOHA] 
+    set mac(1)  [new Module/UW/CSMA_ALOHA] 
+    set phy(0)  [new Module/MPhy/BPSK]  
+    set phy(1)  [new Module/MPhy/BPSK]  
 	
 
-    $node($id) addModule 3 $prnt($id)   1  "PRNT"
-    $node($id) addModule 2 $mac($id)   1  "MAC"
-    $node($id) addModule 1 $phy($id)   1  "PHY"
+    $node(0) addModule 3 $prnt(0)   1  "PRNT"
+    $node(0) addModule 2 $mac(0)   1  "MAC"
+    $node(0) addModule 1 $phy(0)   1  "PHY"
 
-    $node($id) setConnection $prnt($id)   $mac($id)   0
-    $node($id) setConnection $mac($id)   $phy($id)   1
-    $node($id) addToChannel  $channel    $phy($id)   1
+    $node(1) addModule 3 $prnt(1)   1  "PRNT"
+    $node(1) addModule 2 $mac(1)   1  "MAC"
+    $node(1) addModule 1 $phy(1)   1  "PHY"
 
-    if {$id > 254} {
-		puts "hostnum > 254!!! exiting"
-		exit
-    }
+    $node(0) setConnection $prnt(0)   $mac(0)   0
+    $node(0) setConnection $mac(0)   $phy(0)   1
+    $node(0) addToChannel  $channel    $phy(0)   1
+
+    $node(1) setConnection $prnt(1)   $mac(1)   0
+    $node(1) setConnection $mac(1)   $phy(1)   1
+    $node(1) addToChannel  $channel    $phy(1)   1
+
     #Set the IP address of the node
     
-    set position($id) [new "Position/BM"]
-    $node($id) addPosition $position($id)
-    set posdb($id) [new "PlugIn/PositionDB"]
-    $node($id) addPlugin $posdb($id) 20 "PDB"
-    # $posdb($id) addpos [$ipif($id) addr] $position($id)
+    set position(0) [new "Position/BM"]
+    $node(0) addPosition $position(0)
+    set posdb(0) [new "PlugIn/PositionDB"]
+    $node(0) addPlugin $posdb(0) 20 "PDB"
+    # $posdb(0) addpos [$ipif(0) addr] $position(0)
+
+    set position(1) [new "Position/BM"]
+    $node(1) addPosition $position(1)
+    set posdb(1) [new "PlugIn/PositionDB"]
+    $node(1) addPlugin $posdb(1) 20 "PDB"
+    # $posdb(1) addpos [$ipif(1) addr] $position(1)
     
     #Setup positions
-    $position($id) setX_ [expr $id*200]
-    $position($id) setY_ [expr $id*200]
-    $position($id) setZ_ -100
+    $position(0) setX_ [expr 0*200]
+    $position(0) setY_ [expr 0*200]
+    $position(0) setZ_ -100
+
+    $position(1) setX_ [expr 1*200]
+    $position(1) setY_ [expr 1*200]
+    $position(1) setZ_ -100
     
     #Interference model
-    set interf_data($id) [new "MInterference/MIV"]
-    $interf_data($id) set maxinterval_ $opt(maxinterval_)
-    $interf_data($id) set debug_       0
+    set interf_data(0) [new "MInterference/MIV"]
+    $interf_data(0) set maxinterval_ $opt(maxinterval_)
+    $interf_data(0) set debug_       0
+
+    set interf_data(1) [new "MInterference/MIV"]
+    $interf_data(1) set maxinterval_ $opt(maxinterval_)
+    $interf_data(1) set debug_       0
 
 	#Propagation model
-    $phy($id) setPropagation $propagation
-    
-    $phy($id) setSpectralMask $data_mask
-    $phy($id) setInterference $interf_data($id)
-    $mac($id) $opt(ack_mode)
-    $mac($id) initialize
+    $phy(0) setPropagation $propagation
+
+    $phy(1) setPropagation $propagation
+
+    $phy(0) setSpectralMask $data_mask
+    $phy(0) setInterference $interf_data(0)
+    $mac(0) $opt(ack_mode)
+    $mac(0) initialize
+
+    $phy(1) setSpectralMask $data_mask
+    $phy(1) setInterference $interf_data(1)
+    $mac(1) $opt(ack_mode)
+    $mac(1) initialize
+    puts "$mac(0) setMacAddr 0"
+    puts "$mac(1) setMacAddr 1"
 }
 
 #################
 # Node Creation #
 #################
 # Create here all the nodes you want to network together
-for {set id 0} {$id < $opt(nn)} {incr id}  {
-    createNode $id
-}
+createNodes
+
 
 # $prnt(1) settelem
 

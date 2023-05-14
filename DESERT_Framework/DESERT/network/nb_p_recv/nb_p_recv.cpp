@@ -151,6 +151,7 @@ void Nb_p_recv_Module::stop_gen(void) {
 	chkNetBlocksTimer.force_cancel();
 }
 
+static int uidcnt__ = 0;
 void Nb_p_recv_Module::uwSendTimerAppl::expire(Event *e)
 {
 	if (isNbp_) {
@@ -158,6 +159,14 @@ void Nb_p_recv_Module::uwSendTimerAppl::expire(Event *e)
 		nbp__main_loop_step();
 		m_->chkNetBlocksTimer.resched(10.0);
 	} else {
+		// fprintf(stdout, "Sending packet\n");
+		// Packet *p = Packet::alloc();
+		// hdr_cmn *ch = hdr_cmn::access(p);
+		// ch->uid() = uidcnt__++;
+		// ch->ptype() = 2; //CBR style header Fwiw.
+		// ch->size() = 125;
+		// m_->senddown(p,0);
+		// std::cout << "Sending packet\n";
 		// m_->sendPkt(); //TODO: This packet/video sending should be seperate from the 
 		m_->chkTimerPeriod.resched(100.0); // schedule next transmission
 	}
