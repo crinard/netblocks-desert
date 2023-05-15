@@ -154,7 +154,7 @@ void Nb_p_recv_Module::uwSendTimerAppl::expire(Event *e)
 	if (isNbp_) {
 		std::cerr << "nbp__main_loop_step()\n";
 		nbp__main_loop_step();
-		m_->chkNetBlocksTimer.resched(10);
+		m_->chkNetBlocksTimer.resched(10.0);
 	} else {
 		// m_->sendPkt();
 		m_->chkTimerPeriod.resched(120.0); // schedule next transmission

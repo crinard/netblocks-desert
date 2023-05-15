@@ -159,7 +159,7 @@ void Nb_pModule::uwSendTimerAppl::expire(Event *e)
 	if (isNb_) {
 		std::cerr << "NB Main Loop Step\n";
 		nb__main_loop_step();
-		m_->chkNetBlocksTimer.resched(10);
+		m_->chkNetBlocksTimer.resched(10.0);
 	} else {
 		std::cerr << "send packet from server\n";
 		m_->sendPkt();
