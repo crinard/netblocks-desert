@@ -112,10 +112,6 @@ int Nb_p_recv_Module::command(int argc, const char *const *argv)
 	}
 	return Module::command(argc, argv);
 }
-static size_t recv_count = 0;
-
-static int ll_pkt_rx = 0;
-static size_t ll_b_rx = 0;
 
 void Nb_p_recv_Module::recv(Packet *p)
 {
@@ -123,7 +119,6 @@ void Nb_p_recv_Module::recv(Packet *p)
 	if(ch->direction() != hdr_cmn::UP) {
 		std::cerr << "Something weird here, packet direction is not UP" << std::endl;
 	} else {
-		recv_count++;
 		if (recvBufLen >= READ_BUF_LEN) {
 			std::cerr << "Buffer overflow, dropping packet\n";
 			dropped_packets++;
@@ -133,8 +128,6 @@ void Nb_p_recv_Module::recv(Packet *p)
 		assert(recvBufLen < READ_BUF_LEN);
 		recvBuf[recvBufLen] = p;
 		recvBufLen++;
-		ll_pkt_rx++;
-		ll_b_rx += ch->size();
 	}
 	return;
 }
@@ -146,13 +139,13 @@ void Nb_p_recv_Module::start_gen(void) {
 void Nb_p_recv_Module::stop_gen(void) {
 	chkTimerPeriod.force_cancel();
 	chkNetBlocksTimer.force_cancel();
+	nbp__desert_deinit();
 }
 
 static int uidcnt__ = 0;
 void Nb_p_recv_Module::uwSendTimerAppl::expire(Event *e)
 {
 	if (isNbp_) {
-		std::cerr << "nbp__main_loop_step()\n";
 		nbp__main_loop_step();
 		m_->chkNetBlocksTimer.resched(10.0);
 	} else {
@@ -180,8 +173,7 @@ double Nb_p_recv_Module::getDelay(void) {
 	return 0.0;
 }
 double Nb_p_recv_Module::getThroughput(void) {
-	std::cerr << "recv_count = " << recv_count << std::endl;
-	return recv_count;
+	return 0.0;
 }
 double Nb_p_recv_Module::getHeaderSize(void) {
 	return 0.0;

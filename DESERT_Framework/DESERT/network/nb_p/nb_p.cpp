@@ -43,7 +43,6 @@ static int sent_packets = 0;
 static int sent_bytes = 0;
 
 static void callback(int event, nb__connection_t * c) {
-	fprintf(stdout, "NB callback, conn = %p\n", c);
 	if (event == QUEUE_EVENT_READ_READY) {
 		char buff[1000];
 		int len = nb__read(c, buff, 1000);
@@ -132,7 +131,6 @@ int Nb_pModule::command(int argc, const char *const *argv)
 
 void Nb_pModule::recv(Packet *p)
 {
-	std::cerr << "NB_recieved Packet\n";
 	hdr_cmn *ch = HDR_CMN(p);
 	if(ch->direction() != hdr_cmn::UP) {
 		std::cerr << "Something weird here, packet direction is not UP" << std::endl;
@@ -152,16 +150,15 @@ void Nb_pModule::stop_gen(void) {
 	std::cout << "stop_gen\n";
 	chkTimerPeriod.force_cancel();
 	chkNetBlocksTimer.force_cancel();
+	nb__desert_deinit();
 }
 
 void Nb_pModule::uwSendTimerAppl::expire(Event *e)
 {
 	if (isNb_) {
-		std::cerr << "NB Main Loop Step\n";
 		nb__main_loop_step();
 		m_->chkNetBlocksTimer.resched(10.0);
 	} else {
-		std::cerr << "send packet from server\n";
 		m_->sendPkt();
 		m_->chkTimerPeriod.resched(120.0); // schedule next transmission
 	}

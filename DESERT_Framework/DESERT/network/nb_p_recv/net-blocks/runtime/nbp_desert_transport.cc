@@ -21,7 +21,13 @@ static Nb_p_recv_Module *m;
 int nbp__desert_simulate_out_of_order = 0;
 int nbp__desert_simulate_packet_drop = 0;
 static char out_of_order_store[DESERT_MTU];
+
 static int out_of_order_len = 0;
+static int ll_p_rx = 0;
+static size_t ll_b_rx = 0;
+static int ll_p_tx = 0;
+static size_t ll_b_tx = 0;
+
 #define OUT_OF_ORDER_CHANCE (5)
 #define PACKET_DROP_CHANCE (5)
 
@@ -33,12 +39,12 @@ void nbp__desert_init(void *_m) {
 }
 
 void nbp__desert_deinit(void) {
+	fprintf(stdout, "Finish, NBP ll_p_tx = %i, ll_b_tx = %lu, ll_p_rx = %i, ll_b_rx = %lu\n", ll_p_tx, ll_b_tx, ll_p_rx, ll_b_rx);
 	return;
 }
 
 char nbp__reuse_mtu_buffer[DESERT_MTU];
-static int rxpackets = 0;
-static size_t rxbytes = 0;
+
 /**
  * @brief polls packets from those read into nbp_read_pkt_buf from the recv() function in nbp_p.c
  * 
@@ -97,14 +103,13 @@ char* nbp__poll_packet(int* size, int headroom) {
 		readbuf[i] = readbuf[i+lastPacket];
 	}
 	m->setRecvBufLen(readbuflen - lastPacket);
-	rxpackets+=lastPacket;
-	rxbytes += used;
+	ll_p_rx+=lastPacket;
+	ll_b_rx += used;
 	return ret;
 }
 
 static int uidcnt_ = 0;
 static int send_cnt = 0;
-static size_t sent_bytes = 0;
 /**
  * @brief Sends a packet down a layer
  * 
@@ -134,9 +139,8 @@ int nbp__send_packet(char* buff, int len) {
 		assert(!memcmp((char*) pktdata_p, buff, len));
 		assert(len == p->datalen());
 		m->senddown(p,0);
-		send_cnt++;
-		sent_bytes += len;
-		// fprintf(stderr, "sent %d packets, %lu bytes\n", send_cnt, sent_bytes);
+		ll_b_tx += len;
+		ll_p_tx++;
 		return 0;
 	}
 }

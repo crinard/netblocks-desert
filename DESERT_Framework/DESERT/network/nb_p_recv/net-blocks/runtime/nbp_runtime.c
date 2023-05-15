@@ -34,7 +34,6 @@ void nbp__insert_accept_queue(nbp__accept_queue_t* q, unsigned src_app_id,
 }
 
 int nbp__read(nbp__connection_t* c, char* buff, int max_len) {
-  fprintf(stdout, "nbp__read: %d\n", c->input_queue->current_elems);
   if (c->input_queue->current_elems == 0) return 0;
   char* payload = c->input_queue->data_queue_elems[0];
   int payload_size = c->input_queue->data_queue_elems_size[0];
@@ -114,7 +113,6 @@ static void nbp__cycle_connections(void) {
 
 unsigned long long nbp__time_now = -1;
 void nbp__main_loop_step(void) {
-  fprintf(stdout, "nbp__main_loop_step\n");
   // struct timespec tv;
   // clock_gettime(CLOCK_MONOTONIC, &tv);
   // nbp__time_now = tv.tv_sec * 1000 + tv.tv_nsec / 1000000;

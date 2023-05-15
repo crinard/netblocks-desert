@@ -31,22 +31,26 @@ nbp__connection_t* nbp__establish (char* arg0, unsigned int arg1, unsigned int a
 }
 
 void nbp__destablish (nbp__connection_t* arg0) {
-  char* var9 = arg0->remote_host_id;
-  unsigned int var11 = arg0->remote_app_id;
-  unsigned int var13 = arg0->local_app_id;
   int var15 = nbp__net_state->num_conn;
-  for (int var16 = 0; var16 < var15; var16 = var16 + 1) {
-    if (!(((nbp__net_state->active_local_app_ids[var16] == var13) && (nbp__net_state->active_remote_app_ids[var16] == var11)) && (memcmp(nbp__net_state->active_remote_host_ids[var16], var9, 6) == 0))) {
-      continue;
-    } 
-    var15 = var15 - 1;
-    nbp__net_state->num_conn = var15;
-    nbp__net_state->active_local_app_ids[var16] = nbp__net_state->active_local_app_ids[var15];
-    nbp__net_state->active_connections[var16] = nbp__net_state->active_connections[var15];
-    nbp__net_state->active_remote_app_ids[var16] = nbp__net_state->active_remote_app_ids[var15];
-    memcpy(nbp__net_state->active_remote_host_ids[var15], nbp__net_state->active_remote_host_ids[var16], 6);
-    break;
-  }
+  int var16 = 0;
+  if (var16 < var15) {
+    while (1) {
+      if (((nbp__net_state->active_local_app_ids[var16] == arg0->local_app_id) && (nbp__net_state->active_remote_app_ids[var16] == arg0->remote_app_id)) && (memcmp(nbp__net_state->active_remote_host_ids[var16], arg0->remote_host_id, 6) == 0)) {
+        var15 = var15 - 1;
+        nbp__net_state->num_conn = var15;
+        nbp__net_state->active_local_app_ids[var16] = nbp__net_state->active_local_app_ids[var15];
+        nbp__net_state->active_connections[var16] = nbp__net_state->active_connections[var15];
+        nbp__net_state->active_remote_app_ids[var16] = nbp__net_state->active_remote_app_ids[var15];
+        memcpy(nbp__net_state->active_remote_host_ids[var15], nbp__net_state->active_remote_host_ids[var16], 6);
+        break;
+      } else {
+        var16 = var16 + 1;
+        if (!(var16 < var15)) {
+          break;
+        } 
+      }
+    }
+  } 
   nbp__free_data_queue(arg0->input_queue);
   nbp__free_accept_queue(arg0->accept_queue);
   free(arg0);
@@ -138,13 +142,21 @@ void nbp__run_ingress_step (void* arg0, int arg1) {
       unsigned long long int var49 = var48[0];
       unsigned char* var52 = arg0 + 26;
       nbp__connection_t* var57 = 0;
-      for (int var60 = 0; var60 < nbp__net_state->num_conn; var60 = var60 + 1) {
-        if (!(((nbp__net_state->active_local_app_ids[var60] == var43) && (nbp__net_state->active_remote_app_ids[var60] == var49)) && (memcmp(nbp__net_state->active_remote_host_ids[var60], var52, 6) == 0))) {
-          continue;
-        } 
-        var57 = nbp__net_state->active_connections[var60];
-        break;
-      }
+      int var59 = nbp__net_state->num_conn;
+      int var60 = 0;
+      if (var60 < var59) {
+        while (1) {
+          if (((nbp__net_state->active_local_app_ids[var60] == var43) && (nbp__net_state->active_remote_app_ids[var60] == var49)) && (memcmp(nbp__net_state->active_remote_host_ids[var60], var52, 6) == 0)) {
+            var57 = nbp__net_state->active_connections[var60];
+            break;
+          } else {
+            var60 = var60 + 1;
+            if (!(var60 < var59)) {
+              break;
+            } 
+          }
+        }
+      } 
       if (var57 != 0) {
         unsigned long long int var68 = (unsigned long long)(var57);
         unsigned long long int* var72 = (void*)(arg0 + 12);
@@ -211,13 +223,21 @@ void nbp__run_ingress_step (void* arg0, int arg1) {
         }
       } else {
         nbp__connection_t* var208 = 0;
-        for (int var211 = 0; var211 < nbp__net_state->num_conn; var211 = var211 + 1) {
-          if (!(((nbp__net_state->active_local_app_ids[var211] == var43) && (nbp__net_state->active_remote_app_ids[var211] == 0)) && (memcmp(nbp__net_state->active_remote_host_ids[var211], nbp__wildcard_host_identifier, 6) == 0))) {
-            continue;
-          } 
-          var208 = nbp__net_state->active_connections[var211];
-          break;
-        }
+        int var210 = nbp__net_state->num_conn;
+        int var211 = 0;
+        if (var211 < var210) {
+          while (1) {
+            if (((nbp__net_state->active_local_app_ids[var211] == var43) && (nbp__net_state->active_remote_app_ids[var211] == 0)) && (memcmp(nbp__net_state->active_remote_host_ids[var211], nbp__wildcard_host_identifier, 6) == 0)) {
+              var208 = nbp__net_state->active_connections[var211];
+              break;
+            } else {
+              var211 = var211 + 1;
+              if (!(var211 < var210)) {
+                break;
+              } 
+            }
+          }
+        } 
         var57 = var208;
         if (var57 != 0) {
           nbp__insert_accept_queue(var57->accept_queue, var49, var52, arg0);
