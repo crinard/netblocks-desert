@@ -196,7 +196,7 @@ CsmaAloha::CsmaAloha()
 		has_buffer_queue = true;
 	if (listen_time <= 0.0)
 		listen_time = 1e-19;
-	fprintf(stdout,"CSMA initialized!, module_count = %i\n", module_count);
+	// fprintf(stdout,"CSMA initialized!, module_count = %i\n", module_count);
 	which_m = module_count;
 	module_count++;
 	// addr = which_m;
@@ -428,6 +428,7 @@ CsmaAloha::initPkt(Packet *p, CSMA_PKT_TYPE type, int dest_addr)
 			data_sn_queue.push(u_data_id);
 			u_data_id++;
 			mach->macDA() = !addr;
+			fprintf(stdout, "CSMA initPkt, addr = %i, u_data_id = %i\n", addr, u_data_id);
 		} break;
 
 		case (CSMA_ACK_PKT): {
@@ -444,7 +445,6 @@ CsmaAloha::initPkt(Packet *p, CSMA_PKT_TYPE type, int dest_addr)
 void
 CsmaAloha::Mac2PhyStartTx(Packet *p)
 {
-	fprintf(stdout, "CSMA Mac2PhyStartTx, m = %i\n", which_m);
 	MMac::Mac2PhyStartTx(p);
 }
 
@@ -482,13 +482,12 @@ CsmaAloha::Phy2MacEndTx(const Packet *p)
 			stateIdle();
 		} break;
 	}
-	fprintf(stdout, "CSMA Phy2MacEndTx, m = %i\n", which_m);
+	// fprintf(stdout, "CSMA Phy2MacEndTx, m = %i\n", which_m);
 }
 
 void
 CsmaAloha::Phy2MacStartRx(const Packet *p)
 {
-	fprintf(stdout, "CSMA Phy2MacStartRx, m = %i\n", which_m);
 	refreshReason(CSMA_REASON_START_RX);
 	switch (curr_state) {
 

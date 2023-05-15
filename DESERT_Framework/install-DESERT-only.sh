@@ -111,9 +111,9 @@ fi
 
 current_dir=$PWD
 cd $current_dir/DESERT/network/nb_p/net-blocks/
-make simple_desert
+make simple_desert DEBUG=1
 cd $current_dir/DESERT/network/nb_p_recv/net-blocks/
-make simple_desert_nbp
+make simple_desert_nbp DEBUG=1
 cd $current_dir
 
 info_L0 "call_installer"

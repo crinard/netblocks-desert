@@ -61,7 +61,6 @@ Nb_pModule::Nb_pModule():chkTimerPeriod(this, false), chkNetBlocksTimer(this, tr
 	char client_id[] = {0, 0, 0, 0, 0, 2};
 	memcpy(nb__my_host_id, server_id, 6);
 	conn = nb__establish(client_id, 8080, 8081, callback);
-	fprintf(stdout, "NB conn = %p\n", conn);
 	chkNetBlocksTimer.resched(10.0);
 	chkTimerPeriod.resched(60.0);
 	recvBuf = (Packet**) calloc(READ_BUF_LEN, sizeof(Packet*));
@@ -138,15 +137,9 @@ void Nb_pModule::recv(Packet *p)
 	if(ch->direction() != hdr_cmn::UP) {
 		std::cerr << "Something weird here, packet direction is not UP" << std::endl;
 	} else {
-		if (ch->size() == 125) {
-			std::cerr << "NB_recieved Packet with size 125\n";
-			Packet::free(p);
-		} else {
-			assert(recvBufLen < READ_BUF_LEN);
-			recvBuf[recvBufLen] = p;
-			recvBufLen++;
-		}
-		
+		assert(recvBufLen < READ_BUF_LEN);
+		recvBuf[recvBufLen] = p;
+		recvBufLen++;	
 	}
 	return;
 }
@@ -170,7 +163,7 @@ void Nb_pModule::uwSendTimerAppl::expire(Event *e)
 	} else {
 		std::cerr << "send packet from server\n";
 		m_->sendPkt();
-		m_->chkTimerPeriod.resched(60.0); // schedule next transmission
+		m_->chkTimerPeriod.resched(120.0); // schedule next transmission
 	}
 }
 

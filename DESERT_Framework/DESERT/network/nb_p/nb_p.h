@@ -74,22 +74,17 @@ public:
 	 */
 	virtual int command(int, const char *const *);
 
-	// virtual std::vector<Packet*> getNBReadBuffer(void);
 	void senddown(Packet* p, double delay) {
 		sendDown(p, delay);
 	}
 	inline Packet** getRecvBuf(size_t* len) {
-		// fprintf(stdout, "getRecvBuf called\n");
 		*len = recvBufLen;
 		return recvBuf;
 	}
 	void setRecvBufLen(size_t n) {
-		// fprintf(stdout, "setRecvBufLen called, n = %lu\n", n);
 		recvBufLen = n;
-		// fprintf(stdout, "recvBufLen = %lu\n", recvBufLen);
 	}
 	int getRecvBufLen(void) {
-		// fprintf(stdout, "getRecvBufLen called\n");
 		return recvBufLen;
 	}
 protected:

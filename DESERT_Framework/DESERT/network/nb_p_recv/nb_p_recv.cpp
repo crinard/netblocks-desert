@@ -39,14 +39,13 @@ static int sent_bytes = 0;
 static int dropped_packets = 0;
 static nbp__connection_t * s_c = NULL;
 static void callback(int event, nbp__connection_t * c) {
-	fprintf(stdout, "NBP callback, conn = %p\n", c);
 	if ((event == QUEUE_EVENT_READ_READY) && (c == s_c)) {
 		char buff[1000];
 		int len = nbp__read(c, buff, 1000);
 		buff[len] = 0;	
-		fprintf(stdout, "Client received = %s from server\n", buff);	
 		recvd_packets++;
 		recvd_bytes += len;
+		fprintf(stderr, "Client received %s\n", buff);
 	}
 }
 
@@ -57,7 +56,6 @@ Nb_p_recv_Module::Nb_p_recv_Module():chkTimerPeriod(this, false), chkNetBlocksTi
 	char client_id[] = {0, 0, 0, 0, 0, 2};
 	memcpy(nbp__my_host_id, client_id, 6);
 	conn = nbp__establish(server_id, 8081, 8080, callback);
-	fprintf(stdout, "NBP conn = %p\n", conn);
 	chkNetBlocksTimer.resched(60.0);
 	chkTimerPeriod.resched(120.0);
 	s_c = conn;
@@ -137,7 +135,6 @@ void Nb_p_recv_Module::recv(Packet *p)
 		recvBufLen++;
 		ll_pkt_rx++;
 		ll_b_rx += ch->size();
-		fprintf(stdout, "ll recieved packets = %i, ll rx bytes = %lu", ll_pkt_rx, ll_b_rx);
 	}
 	return;
 }
@@ -157,22 +154,14 @@ void Nb_p_recv_Module::uwSendTimerAppl::expire(Event *e)
 	if (isNbp_) {
 		std::cerr << "nbp__main_loop_step()\n";
 		nbp__main_loop_step();
-		m_->chkNetBlocksTimer.resched(10.0);
+		m_->chkNetBlocksTimer.resched(10);
 	} else {
-		// fprintf(stdout, "Sending packet\n");
-		// Packet *p = Packet::alloc();
-		// hdr_cmn *ch = hdr_cmn::access(p);
-		// ch->uid() = uidcnt__++;
-		// ch->ptype() = 2; //CBR style header Fwiw.
-		// ch->size() = 125;
-		// m_->senddown(p,0);
-		// std::cout << "Sending packet\n";
-		// m_->sendPkt(); //TODO: This packet/video sending should be seperate from the 
-		m_->chkTimerPeriod.resched(100.0); // schedule next transmission
+		// m_->sendPkt();
+		m_->chkTimerPeriod.resched(120.0); // schedule next transmission
 	}
 }
-static int uidcnt_ = 0;
 void Nb_p_recv_Module::sendPkt(void) {
+	// fprintf(stdout, "sendPkt()\n");
 	// nbp__send(conn, "Client says hello", sizeof("Client says hello"));
 	// sent_packets++;
 	// sent_bytes+=sizeof("Client says hello");
