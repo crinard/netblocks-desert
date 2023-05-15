@@ -53,20 +53,22 @@ char* nbp__poll_packet(int* size, int headroom) {
 	if(readbuflen > READ_BUF_LEN) {assert(false);} // If this ain't true we have problems.
 	int totalSize = 0; // Combined size of the data portion of all the packets.
 	int lastPacket = 0;
-	*size = 0;
 	for (int i = 0; i < readbuflen; i++) {
 		Packet* p = readbuf[i];
 		int packetLen = p->datalen();
 		if (totalSize + packetLen > DESERT_MTU) {
-			lastPacket = i;
 			break;
 		}
 		totalSize += packetLen;
+		lastPacket = i+1;
 	}
-	lastPacket = (lastPacket == 0) ? readbuflen : lastPacket;
 	
 	char* scratch[DESERT_MTU];
 	if (totalSize == 0) {
+		for (int i = 0; i < readbuflen; i++) {
+			Packet* p = readbuf[i];
+			Packet::free(p);
+		}
 		*size = 0;
 		m->setRecvBufLen(0);
 		return NULL;
@@ -76,7 +78,6 @@ char* nbp__poll_packet(int* size, int headroom) {
 	for (size_t i = 0; (i < lastPacket); i++) {
 		Packet* p = readbuf[i];
 		if (p->datalen() == 0) {
-			// This packet has no data, so we can skip it.
 			Packet::free(p);
 			continue;
 		}

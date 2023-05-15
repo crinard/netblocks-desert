@@ -196,9 +196,8 @@ CsmaAloha::CsmaAloha()
 		has_buffer_queue = true;
 	if (listen_time <= 0.0)
 		listen_time = 1e-19;
-	// fprintf(stdout,"CSMA initialized!, module_count = %i\n", module_count);
 	which_m = module_count;
-	module_count++;
+	module_count++; //TODO: FIX
 	// addr = which_m;
 }
 
@@ -395,7 +394,6 @@ CsmaAloha::getBackoffTime()
 void
 CsmaAloha::recvFromUpperLayers(Packet *p)
 {
-	fprintf(stdout, "CSMA recvFromUpperLayers, m = %i\n", which_m);
 	if (((has_buffer_queue == true) && (Q.size() < buffer_pkts)) ||
 			(has_buffer_queue == false)) {
 		initPkt(p, CSMA_DATA_PKT);
@@ -427,8 +425,7 @@ CsmaAloha::initPkt(Packet *p, CSMA_PKT_TYPE type, int dest_addr)
 			ch->size() = curr_size + HDR_size;
 			data_sn_queue.push(u_data_id);
 			u_data_id++;
-			mach->macDA() = !addr;
-			fprintf(stdout, "CSMA initPkt, addr = %i, u_data_id = %i\n", addr, u_data_id);
+			mach->macDA() = !addr; //TODO: Fix!
 		} break;
 
 		case (CSMA_ACK_PKT): {
@@ -482,7 +479,6 @@ CsmaAloha::Phy2MacEndTx(const Packet *p)
 			stateIdle();
 		} break;
 	}
-	// fprintf(stdout, "CSMA Phy2MacEndTx, m = %i\n", which_m);
 }
 
 void
@@ -538,27 +534,21 @@ CsmaAloha::Phy2MacEndRx(Packet *p)
 		refreshReason(CSMA_REASON_PKT_ERROR);
 		drop(p, 1, CSMA_DROP_REASON_ERROR);
 		stateRxPacketNotForMe(NULL);
-		fprintf(stdout, "CSMA Phy2MacEndRx *****CHANNEL ERROR***** m = %i\n", which_m);
 	} else {
-		fprintf(stdout, "CSMA Phy2MacEndRx, dest__mac = %i, addr = %i, m = %i\n", dest_mac, addr, which_m);
 		if (dest_mac == addr || dest_mac == MAC_BROADCAST) {
 			if (rx_pkt_type == PT_MMAC_ACK) {
 				refreshReason(CSMA_REASON_ACK_RX);
 				stateRxAck(p);
-				fprintf(stdout,"CSMA Phy2MacEndRx, PT_MMAC_ACK, m = %i\n", which_m);
 			} else if (curr_state != CSMA_STATE_RX_WAIT_ACK) {
 				refreshReason(CSMA_REASON_DATA_RX);
 				stateRxData(p);
-				fprintf(stdout, "CSMA Phy2MacEndRx, curr_state = CSMA_REASON_DATA_RX\n");
 			} else {
 				refreshReason(CSMA_REASON_PKT_NOT_FOR_ME);
 				stateRxPacketNotForMe(p);
-				fprintf(stdout, "CSMA Phy2MacEndRx, curr_state == CSMA_STATE_RX_WAIT_ACK\n");
 			}
 		} else {
 			refreshReason(CSMA_REASON_PKT_NOT_FOR_ME);
 			stateRxPacketNotForMe(p);
-			fprintf(stdout, "CSMA Phy2MacEndRx, dest_mac != addr, m = %i\n", which_m);
 		}
 	}
 }
