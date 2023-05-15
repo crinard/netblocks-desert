@@ -156,15 +156,15 @@ void Nb_p_recv_Module::uwSendTimerAppl::expire(Event *e)
 		nbp__main_loop_step();
 		m_->chkNetBlocksTimer.resched(10.0);
 	} else {
-		// m_->sendPkt();
+		m_->sendPkt();
 		m_->chkTimerPeriod.resched(120.0); // schedule next transmission
 	}
 }
 void Nb_p_recv_Module::sendPkt(void) {
 	// fprintf(stdout, "sendPkt()\n");
-	// nbp__send(conn, "Client says hello", sizeof("Client says hello"));
-	// sent_packets++;
-	// sent_bytes+=sizeof("Client says hello");
+	nbp__send(conn, "Client says hello", sizeof("Client says hello"));
+	sent_packets++;
+	sent_bytes+=sizeof("Client says hello");
 }
 
 double Nb_p_recv_Module::getSentPkts(void) {
