@@ -114,10 +114,7 @@ int Nb_p_recv_Module::command(int argc, const char *const *argv)
 			tcl.resultf("%f", getSentBytes());
 			return TCL_OK;
 		} else if (strcasecmp(argv[1], "settelem") == 0) {
-			// if (set_mode_telem()) return TCL_OK;
-			return TCL_ERROR;
-		} else if (strcasecmp(argv[1], "setvideostream") == 0) {
-			// if (set_mode_video()) return TCL_OK;
+			if (set_mode_telem()) return TCL_OK;
 			return TCL_ERROR;
 		}
 	}

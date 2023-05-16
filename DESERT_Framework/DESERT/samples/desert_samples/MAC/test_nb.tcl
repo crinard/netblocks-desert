@@ -156,8 +156,8 @@ proc createNodes {} {
     
     set node(0) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
     set node(1) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
-    Module/UW/Nb_p set period_ 60.0
-    Module/UW/Nb_p_recv set period 60.0  
+    Module/UW/Nb_p set period_ 58.0
+    Module/UW/Nb_p_recv set period_ 10.0  
 
     set prnt(0)  [new Module/UW/Nb_p_recv]
     set prnt(1)  [new Module/UW/Nb_p]
@@ -198,7 +198,7 @@ proc createNodes {} {
     # $posdb(1) addpos [$ipif(1) addr] $position(1)
     
     #Setup positions
-    $position(0) setX_ [expr 0*200]
+    $position(0) setX_ [expr 0*10000]
     $position(0) setY_ [expr 0*200]
     $position(0) setZ_ -100
 
@@ -231,8 +231,8 @@ proc createNodes {} {
     $mac(1) initialize
     puts "$mac(0) setMacAddr 0"
     puts "$mac(1) setMacAddr 1"
-    # $prnt(1) settelem
-    #$prnt(0) setvideostream
+    $prnt(1) settelem
+    # $prnt(0) settelem
 }
 
 #################
