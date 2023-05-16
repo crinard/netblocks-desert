@@ -15,7 +15,7 @@
 #include "nb_p.h"
 #include "nb_runtime.h"
 #define MAX_TX_LEN 10000
-#define TELEM_FILE_PATH "/home/crinard/Desktop/sample_telem.txt" 
+#define TELEM_FILE_PATH "/home/crinard/Desktop/DESERT_Underwater/DESERT_Framework/example_data/navlog.txt" 
 #define VIDEO_FILE_PATH "/home/crinard/Desktop/sample_video.mp4" //TODO: Fix this
 extern char nb__my_host_id[];
 
@@ -41,6 +41,7 @@ static int recvd_packets = 0;
 static size_t recvd_bytes = 0;
 static int sent_packets = 0;
 static int sent_bytes = 0;
+static char* freebuf[100];
 
 static void callback(int event, nb__connection_t * c) {
 	if (event == QUEUE_EVENT_READ_READY) {
@@ -65,7 +66,6 @@ Nb_pModule::Nb_pModule():chkTimerPeriod(this, false), chkNetBlocksTimer(this, tr
 	recvBuf = (Packet**) calloc(READ_BUF_LEN, sizeof(Packet*));
 	recvBufLen = 0;
 	sim_type = NOT_SET;
-	is_compressed = false;
 }
 
 Nb_pModule::~Nb_pModule(){
@@ -106,24 +106,18 @@ int Nb_pModule::command(int argc, const char *const *argv)
 		} else if (strcasecmp(argv[1], "getheadersize") == 0) {
 			tcl.resultf("%f", getHeaderSize());
 			return TCL_OK;
-		} else if (strcasecmp(argv[1], "settelem") == 0) {
-			if (set_mode_telem()) return TCL_OK;
-			return TCL_ERROR;
-		} else if (strcasecmp(argv[1], "setvideostream") == 0) {
-			if (set_mode_video()) return TCL_OK;
-			return TCL_ERROR;
-		} else if (strcasecmp(argv[1], "setcompressed") == 0) {
-			set_compressed(1);
-			return TCL_OK;
-		} else if (strcasecmp(argv[1], "setnocompression") == 0) {
-			set_compressed(0);
-			return TCL_OK;
 		} else if (strcasecmp(argv[1], "getrecvbytes") == 0) {
 			tcl.resultf("%f", getRecvBytes());
 			return TCL_OK;
 		} else if (strcasecmp(argv[1], "getsentbytes") == 0) {
 			tcl.resultf("%f", getSentBytes());
 			return TCL_OK;
+		} else if (strcasecmp(argv[1], "settelem") == 0) {
+			if (set_mode_telem()) return TCL_OK;
+			return TCL_ERROR;
+		} else if (strcasecmp(argv[1], "setvideostream") == 0) {
+			if (set_mode_video()) return TCL_OK;
+			return TCL_ERROR;
 		}
 	}
 	return Module::command(argc, argv);
@@ -180,55 +174,70 @@ void Nb_pModule::sendPkt(void) {
 		sent_bytes += len;
 	} else if (sim_type == CONTROL_STREAM) {
 		int len = MAX_TX_LEN;
-		char* buff = genTelemPkt(&len);
-		if (len > MAX_TX_LEN) {assert(false);}
+		sendTelemPkt();
 		std::cerr << "send telem pkt, len = " << len << "\n";
-		nb__send(conn, buff, len);
-		free(buff);
-		sent_packets++;
-		sent_bytes += len;
 	}
 }
 
 char* Nb_pModule::genVideoPkt(int * size) {
 	std::string lines[1000];
-	std::ifstream myfile(VIDEO_FILE_PATH);
+	// std::ifstream myfile(VIDEO_FILE_PATH);
 	int a = 0;
-	if(!myfile) {
-		std::cerr << "VIDEO FILE NOT FOUND\n";
-		return NULL;
-	}
-	if (!myfile.eof()) {
-		getline(myfile, lines[a],'\n');
-		a++;
-	}
+	// if(!myfile) {
+	// 	std::cerr << "VIDEO FILE NOT FOUND\n";
+	// 	return NULL;
+	// }
+	// if (!myfile.eof()) {
+	// 	getline(myfile, lines[a],'\n');
+	// 	a++;
+	// }
 	char* buf = (char*)malloc(lines[a].size());
 	memcpy(buf, lines[a].c_str(), lines[a].size());		
-	*size = lines[a].size();		
+	// *size = lines[a].size();		
 	return buf;
 }
-static int a = 0;
-char* Nb_pModule::genTelemPkt(int * size) {
-	if (a > 1000) {
-		*size = 0;
-		return NULL;
-	}
-	std::ifstream fin(TELEM_FILE_PATH);
-	a++;
-	std::string tmp;
-	if(!fin) {
-		std::cerr << "TELEM FILE NOT FOUND\n";
-		return NULL;
-	}
-	for (int i = 0; ((i < a) && !fin.eof()); i++) {
-		getline(fin, tmp, '\n');
-	}
-	char* buf = (char*)malloc(tmp.size());
-	memcpy(buf, tmp.c_str(), tmp.size());		
-	*size = tmp.size();
-	// std::cout << "telem packet size: " << *size << std::endl;
-	fin.close();
-	return buf;
+
+void Nb_pModule::sendTelemPkt(void) {
+	FILE* file = fopen(TELEM_FILE_PATH, "r");  // Open the input file in read mode
+    if (file == NULL) {
+        printf("Failed to open the file.\n");
+        return;
+    }
+
+    fseek(file, 0, SEEK_END);  // Move the file pointer to the end of the file
+    long file_size = ftell(file);  // Get the current position (which is the file size)
+    rewind(file);  // Reset the file pointer to the beginning of the file
+
+    char* buffer = (char*)malloc(file_size + 1);  // Allocate memory for the buffer
+    if (buffer == NULL) {
+        printf("Failed to allocate memory.\n");
+        return;
+    }
+
+    size_t result = fread(buffer, 1, file_size, file);  // Read the file into the buffer
+    if (result != file_size) {
+        printf("Failed to read the file.\n");
+        return;
+    }
+
+    buffer[file_size] = '\0';  // Add a null terminator at the end of the buffer
+
+    // printf("Contents of the file:\n%s\n", buffer);
+
+    // fclose(file);  // Close the file
+	size_t i = 0;
+	// for (i = 0; i * 980 < tosend.size(); i++) {
+	// 	std::string tmp = tosend.substr(i * 980, 980);
+	// 	char * tmpbuf = (char*)malloc(tmp.size() * sizeof(char));
+	// 	memcpy(tmpbuf, tmp.c_str(), tmp.size() * sizeof(char));
+	// 	nb__send(conn, tmpbuf, tmp.size());
+	// 	sent_packets++;
+	// 	sent_bytes += tmp.size();
+	// }
+	nb__send(conn, buffer, 400);
+	sent_packets++;
+	sent_bytes += 400;
+	return;
 }
 
 double Nb_pModule::getSentPkts(void) {
@@ -262,9 +271,7 @@ bool Nb_pModule::set_mode_video(void) {
 	sim_type = VIDEO_STREAM;
 	return true;
 }
-void Nb_pModule::set_compressed(bool c) {
-	is_compressed = c;
-}
+
 double Nb_pModule::getSentBytes(void) {
 	return sent_bytes;
 }

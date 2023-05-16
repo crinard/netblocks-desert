@@ -9,9 +9,14 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include <fstream>
+#include <string>
 
 #include "nb_p_recv.h"
 #include "nbp_runtime.h"
+#define TELEM_FILE_PATH "/home/crinard/Desktop/DESERT_Underwater/DESERT_Framework/example_data/navlog.txt" 
+#define VIDEO_FILE_PATH "/home/crinard/Desktop/sample_video.mp4"
+
 extern char nbp__my_host_id[];
 // static bool isrunning = 0;
 /**
@@ -37,9 +42,10 @@ static size_t recvd_bytes = 0;
 static int sent_packets = 0;
 static int sent_bytes = 0;
 static int dropped_packets = 0;
-static nbp__connection_t * s_c = NULL;
+
+
 static void callback(int event, nbp__connection_t * c) {
-	if ((event == QUEUE_EVENT_READ_READY) && (c == s_c)) {
+	if (event == QUEUE_EVENT_READ_READY) {
 		char buff[1000];
 		int len = nbp__read(c, buff, 1000);
 		buff[len] = 0;	
@@ -58,7 +64,6 @@ Nb_p_recv_Module::Nb_p_recv_Module():chkTimerPeriod(this, false), chkNetBlocksTi
 	conn = nbp__establish(server_id, 8081, 8080, callback);
 	chkNetBlocksTimer.resched(60.0);
 	chkTimerPeriod.resched(120.0);
-	s_c = conn;
 	recvBuf = (Packet**) calloc(READ_BUF_LEN, sizeof(Packet*));
 	recvBufLen = 0;
 }
@@ -108,6 +113,12 @@ int Nb_p_recv_Module::command(int argc, const char *const *argv)
 		} else if (strcasecmp(argv[1], "getsentbytes") == 0) {
 			tcl.resultf("%f", getSentBytes());
 			return TCL_OK;
+		} else if (strcasecmp(argv[1], "settelem") == 0) {
+			// if (set_mode_telem()) return TCL_OK;
+			return TCL_ERROR;
+		} else if (strcasecmp(argv[1], "setvideostream") == 0) {
+			// if (set_mode_video()) return TCL_OK;
+			return TCL_ERROR;
 		}
 	}
 	return Module::command(argc, argv);
@@ -153,6 +164,42 @@ void Nb_p_recv_Module::uwSendTimerAppl::expire(Event *e)
 		m_->chkTimerPeriod.resched(120.0); // schedule next transmission
 	}
 }
+
+char* Nb_p_recv_Module::genVideoPkt(int * size) {
+	std::string lines[1000];
+	std::ifstream myfile(VIDEO_FILE_PATH);
+	int a = 0;
+	if(!myfile) {
+		std::cerr << "VIDEO FILE NOT FOUND\n";
+		return NULL;
+	}
+	if (!myfile.eof()) {
+		getline(myfile, lines[a],'\n');
+		a++;
+	}
+	char* buf = (char*)malloc(lines[a].size());
+	memcpy(buf, lines[a].c_str(), lines[a].size());		
+	*size = lines[a].size();		
+	return buf;
+}
+
+char* Nb_p_recv_Module::genTelemPkt(int * size) {
+	std::ifstream fin(TELEM_FILE_PATH);
+	std::string tmp;
+	if(!fin) {
+		std::cerr << "TELEM FILE NOT FOUND\n";
+		return NULL;
+	}
+	for (int i = 0; !fin.eof(); i++) {
+		getline(fin, tmp, '\n');
+	}
+	char* buf = (char*)malloc(tmp.size());
+	memcpy(buf, tmp.c_str(), tmp.size());		
+	*size = tmp.size();
+	fin.close();
+	return buf;
+}
+
 void Nb_p_recv_Module::sendPkt(void) {
 	// fprintf(stdout, "sendPkt()\n");
 	nbp__send(conn, "Client says hello", sizeof("Client says hello"));
@@ -183,4 +230,17 @@ double Nb_p_recv_Module::getRecvBytes(void) {
 }
 double Nb_p_recv_Module::getSentBytes(void) {
 	return sent_bytes;
+}
+
+bool Nb_p_recv_Module::set_mode_telem(void) {
+	if (sim_type != NOT_SET)
+		return false;
+	sim_type = CONTROL_STREAM;
+	return true;
+}
+bool Nb_p_recv_Module::set_mode_video(void) {
+	if (sim_type != NOT_SET)
+		return false;
+	sim_type = VIDEO_STREAM;
+	return true;
 }

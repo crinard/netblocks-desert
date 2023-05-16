@@ -87,7 +87,7 @@ $ns use-Miracle
 ##################
 set opt(nn)                 2.0 ;# Number of Nodes
 set opt(starttime)          1	
-set opt(stoptime)           1000000
+set opt(stoptime)           10000
 set opt(txduration)         [expr $opt(stoptime) - $opt(starttime)] ;# Duration of the simulation
 set opt(txpower)            180.0  ;#Power transmitted in dB re uPa
 set opt(maxinterval_)       20.0
@@ -229,6 +229,8 @@ proc createNodes {} {
     $mac(1) initialize
     puts "$mac(0) setMacAddr 0"
     puts "$mac(1) setMacAddr 1"
+    # $prnt(1) settelem
+    #$prnt(0) setvideostream
 }
 
 #################

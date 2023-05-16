@@ -23,10 +23,10 @@ int nbp__desert_simulate_packet_drop = 0;
 static char out_of_order_store[DESERT_MTU];
 
 static int out_of_order_len = 0;
-static int ll_p_rx = 0;
-static size_t ll_b_rx = 0;
-static int ll_p_tx = 0;
-static size_t ll_b_tx = 0;
+static int nbp_ll_p_rx = 0;
+static size_t nbp_ll_b_rx = 0;
+static int nbp_ll_p_tx = 0;
+static size_t nbp_ll_b_tx = 0;
 
 #define OUT_OF_ORDER_CHANCE (5)
 #define PACKET_DROP_CHANCE (5)
@@ -35,11 +35,15 @@ void nbp__desert_init(void *_m) {
 	// connect mode
 	m = (Nb_p_recv_Module*)_m;
 	m->setRecvBufLen(0);
+	nbp_ll_b_tx = 0;
+	nbp_ll_p_tx = 0;
+	nbp_ll_b_rx = 0;
+	nbp_ll_p_rx = 0;
 	return;
 }
 
 void nbp__desert_deinit(void) {
-	fprintf(stdout, "Finish, NBP ll_p_tx = %i, ll_b_tx = %lu, ll_p_rx = %i, ll_b_rx = %lu\n", ll_p_tx, ll_b_tx, ll_p_rx, ll_b_rx);
+	fprintf(stdout, "Finish, NBP nbp_ll_p_tx = %i, nbp_ll_b_tx = %lu, nbp_ll_p_rx = %i, nbp_ll_b_rx = %lu\n", nbp_ll_p_tx, nbp_ll_b_tx, nbp_ll_p_rx, nbp_ll_b_rx);
 	return;
 }
 
@@ -103,8 +107,8 @@ char* nbp__poll_packet(int* size, int headroom) {
 		readbuf[i] = readbuf[i+lastPacket];
 	}
 	m->setRecvBufLen(readbuflen - lastPacket);
-	ll_p_rx+=lastPacket;
-	ll_b_rx += used;
+	nbp_ll_p_rx+=lastPacket;
+	nbp_ll_b_rx += used;
 	return ret;
 }
 
@@ -139,8 +143,8 @@ int nbp__send_packet(char* buff, int len) {
 		assert(!memcmp((char*) pktdata_p, buff, len));
 		assert(len == p->datalen());
 		m->senddown(p,0);
-		ll_b_tx += len;
-		ll_p_tx++;
+		nbp_ll_b_tx += len;
+		nbp_ll_p_tx++;
 		return 0;
 	}
 }

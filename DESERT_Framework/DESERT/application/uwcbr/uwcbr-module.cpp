@@ -216,6 +216,15 @@ UwCbrModule::command(int argc, const char *const *argv)
 		} else if (strcasecmp(argv[1], "printidspkts") == 0) {
 			this->printIdsPkts();
 			return TCL_OK;
+		} else if (strcasecmp(argv[1], "setmodehello") == 0) {
+			this->setmodehello();
+			return TCL_OK;
+		} else if (strcasecmp(argv[1], "setmodetelem") == 0) {
+			this->setmodetelem();
+			return TCL_OK;
+		} else if (strcasecmp(argv[1], "setmodevideo") == 0) {
+			this->setmodevideo();
+			return TCL_OK;
 		}
 	} else if (argc == 3) {
 		if (strcasecmp(argv[1], "setLogSuffix") == 0){
@@ -260,9 +269,20 @@ UwCbrModule::initPkt(Packet *p)
 	hdr_cmn *ch = hdr_cmn::access(p);
 	ch->uid() = uidcnt_++;
 	ch->ptype() = PT_UWCBR;
-	ch->size() = pktSize_;
-	// TODO: use netblocks send functions. When you create connection, use netblocks. Just set payload and protocol.
-	
+	switch (mode)
+	{
+	case 0:
+		ch->size() = sizeof("Hello");
+		break;
+	case 1:
+		ch->size() = sizeof("Telemetry");
+		break;
+	case 2:
+		ch->size() = sizeof("Video");
+		break;
+	default:
+		break;
+	}	
 
 	hdr_uwip *uwiph = hdr_uwip::access(p);
 	uwiph->daddr() = dstAddr_;
@@ -609,4 +629,22 @@ UwCbrModule::printReceivedPacket(Packet *p)
 				<< (int) uwiph->saddr() << " " << (int) uwiph->daddr() << " " << ch->size() <<"\n";
 		tracefile.flush();
 	}
+}
+
+void 
+UwCbrModule::setmodehello(void) {
+	mode = 0;
+	std::cout << "set mode hello\n";
+}
+
+void 
+UwCbrModule::setmodetelem(void) {
+	mode = 1;
+	std::cout << "set mode telem\n";
+}
+
+void 
+UwCbrModule::setmodevideo(void) {
+	mode = 2;
+	std::cout << "set mode video\n";
 }

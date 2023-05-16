@@ -121,8 +121,7 @@ protected:
 	virtual double getHeaderSize(void);
 	virtual bool set_mode_telem(void);
 	virtual bool set_mode_video(void);
-	virtual void set_compressed(bool setCmpr_);
-	virtual char* genTelemPkt(int* size);
+	virtual void sendTelemPkt(void);
 	virtual char* genVideoPkt(int* size);
 	virtual double getRecvBytes(void);
 	virtual double getSentBytes(void);
@@ -133,7 +132,6 @@ protected:
 	nb__connection_t * conn;
 	Packet** recvBuf;
 	size_t recvBufLen;
-	bool is_compressed;
 };
 
 #endif // _NB_P_H_

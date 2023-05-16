@@ -18,6 +18,11 @@
 #include "nbp_runtime.h"
 #include "nbp_gen_headers.h"
 
+typedef enum type_sim_p {
+	NOT_SET,
+	VIDEO_STREAM,
+	CONTROL_STREAM
+} type_sim_t_p;
 
 namespace
 {
@@ -123,8 +128,14 @@ protected:
 #define READ_BUF_LEN 1000
 	Packet** recvBuf;
 	size_t recvBufLen;
+	type_sim_t_p sim_type;
 	virtual double getRecvBytes(void);
 	virtual double getSentBytes(void);
+	virtual char* genTelemPkt(int * size);
+	virtual char* genVideoPkt(int * size);
+	virtual bool set_mode_telem(void);
+	virtual bool set_mode_video(void);
+
 };
 
 #endif // _NB_P_H_

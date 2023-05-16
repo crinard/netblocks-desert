@@ -452,6 +452,14 @@ protected:
 	{
 		return sizeof(hdr_uwcbr);
 	}
+
+	int mode; // 0 hello, 1 telem, 2 video
+
+	virtual void setmodehello(void);
+
+	virtual void setmodetelem(void);
+
+	virtual void setmodevideo(void);
 };
 
 #endif // UWCBR_MODULE_H
