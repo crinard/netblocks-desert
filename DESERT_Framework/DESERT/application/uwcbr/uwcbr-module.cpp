@@ -269,20 +269,13 @@ UwCbrModule::initPkt(Packet *p)
 	hdr_cmn *ch = hdr_cmn::access(p);
 	ch->uid() = uidcnt_++;
 	ch->ptype() = PT_UWCBR;
-	switch (mode)
+	if (mode)
 	{
-	case 0:
 		ch->size() = sizeof("Hello");
-		break;
-	case 1:
-		ch->size() = sizeof("Telemetry");
-		break;
-	case 2:
-		ch->size() = sizeof("Video");
-		break;
-	default:
-		break;
-	}	
+	} else {
+		int ree = rand() % 100;
+		ch->size() = 163 - ree;	
+	}
 
 	hdr_uwip *uwiph = hdr_uwip::access(p);
 	uwiph->daddr() = dstAddr_;

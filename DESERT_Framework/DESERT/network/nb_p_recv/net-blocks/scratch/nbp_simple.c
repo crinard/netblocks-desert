@@ -1,11 +1,13 @@
 #include "nbp_runtime.h"
-void nbp__net_init (void) {
+void nbp__net_init(void) {
   nbp__init_timers();
   nbp__net_state = malloc(sizeof(nbp__net_state[0]));
   nbp__net_state->num_conn = 0;
 }
 
-nbp__connection_t* nbp__establish (char* arg0, unsigned int arg1, unsigned int arg2, void (*arg3)(int, nbp__connection_t*)) {
+nbp__connection_t* nbp__establish(char* arg0, unsigned int arg1,
+                                  unsigned int arg2,
+                                  void (*arg3)(int, nbp__connection_t*)) {
   nbp__connection_t* var8;
   var8 = malloc(sizeof(var8[0]));
   var8->callback_f = arg3;
@@ -30,33 +32,42 @@ nbp__connection_t* nbp__establish (char* arg0, unsigned int arg1, unsigned int a
   return var8;
 }
 
-void nbp__destablish (nbp__connection_t* arg0) {
+void nbp__destablish(nbp__connection_t* arg0) {
   int var15 = nbp__net_state->num_conn;
   int var16 = 0;
   if (var16 < var15) {
     while (1) {
-      if (((nbp__net_state->active_local_app_ids[var16] == arg0->local_app_id) && (nbp__net_state->active_remote_app_ids[var16] == arg0->remote_app_id)) && (memcmp(nbp__net_state->active_remote_host_ids[var16], arg0->remote_host_id, 6) == 0)) {
+      if (((nbp__net_state->active_local_app_ids[var16] ==
+            arg0->local_app_id) &&
+           (nbp__net_state->active_remote_app_ids[var16] ==
+            arg0->remote_app_id)) &&
+          (memcmp(nbp__net_state->active_remote_host_ids[var16],
+                  arg0->remote_host_id, 6) == 0)) {
         var15 = var15 - 1;
         nbp__net_state->num_conn = var15;
-        nbp__net_state->active_local_app_ids[var16] = nbp__net_state->active_local_app_ids[var15];
-        nbp__net_state->active_connections[var16] = nbp__net_state->active_connections[var15];
-        nbp__net_state->active_remote_app_ids[var16] = nbp__net_state->active_remote_app_ids[var15];
-        memcpy(nbp__net_state->active_remote_host_ids[var15], nbp__net_state->active_remote_host_ids[var16], 6);
+        nbp__net_state->active_local_app_ids[var16] =
+            nbp__net_state->active_local_app_ids[var15];
+        nbp__net_state->active_connections[var16] =
+            nbp__net_state->active_connections[var15];
+        nbp__net_state->active_remote_app_ids[var16] =
+            nbp__net_state->active_remote_app_ids[var15];
+        memcpy(nbp__net_state->active_remote_host_ids[var15],
+               nbp__net_state->active_remote_host_ids[var16], 6);
         break;
       } else {
         var16 = var16 + 1;
         if (!(var16 < var15)) {
           break;
-        } 
+        }
       }
     }
-  } 
+  }
   nbp__free_data_queue(arg0->input_queue);
   nbp__free_accept_queue(arg0->accept_queue);
   free(arg0);
 }
 
-int nbp__send (nbp__connection_t* arg0, char* arg1, int arg2) {
+int nbp__send(nbp__connection_t* arg0, char* arg1, int arg2) {
   unsigned char* var9 = nbp__request_send_buffer();
   int var10 = 0;
   int* var11 = (&(var10));
@@ -72,7 +83,8 @@ int nbp__send (nbp__connection_t* arg0, char* arg1, int arg2) {
   unsigned int* var50 = (void*)(var9 + 50);
   arg0->redelivery_buffer[var50[0] % 32] = var9;
   nbp__timer* var54 = nbp__alloc_timer();
-  nbp__insert_timer(var54, nbp__get_time_ms_now() + 50000, nbp__reliable_redelivery_timer_cb, var9);
+  nbp__insert_timer(var54, nbp__get_time_ms_now() + 50000000,
+                    nbp__reliable_redelivery_timer_cb, var9);
   unsigned long long int var55 = (unsigned long long)(var54);
   unsigned long long int* var59 = (void*)(var9 + 4);
   var59[0] = var55;
@@ -100,9 +112,10 @@ int nbp__send (nbp__connection_t* arg0, char* arg1, int arg2) {
   if ((var110 - var104) % 2) {
     var98[var110] = 0;
     var110 = var110 + 1;
-  } 
+  }
   unsigned short int var111 = 0;
-  for (char* var112 = var98 + var104; var112 < (var98 + var110); var112 = var112 + 2) {
+  for (char* var112 = var98 + var104; var112 < (var98 + var110);
+       var112 = var112 + 2) {
     unsigned short int* var113 = (void*)(var112);
     var111 = var111 + var113[0];
   }
@@ -113,7 +126,7 @@ int nbp__send (nbp__connection_t* arg0, char* arg1, int arg2) {
   return var10;
 }
 
-void nbp__run_ingress_step (void* arg0, int arg1) {
+void nbp__run_ingress_step(void* arg0, int arg1) {
   unsigned short int* var10 = (void*)(arg0 + 40);
   unsigned long long int var11 = var10[0];
   char* var14 = (void*)(arg0);
@@ -126,9 +139,10 @@ void nbp__run_ingress_step (void* arg0, int arg1) {
   if ((var26 - var20) % 2) {
     var14[var26] = 0;
     var26 = var26 + 1;
-  } 
+  }
   unsigned short int var27 = 0;
-  for (char* var28 = var14 + var20; var28 < (var14 + var26); var28 = var28 + 2) {
+  for (char* var28 = var14 + var20; var28 < (var14 + var26);
+       var28 = var28 + 2) {
     unsigned short int* var29 = (void*)(var28);
     var27 = var27 + var29[0];
   }
@@ -146,17 +160,20 @@ void nbp__run_ingress_step (void* arg0, int arg1) {
       int var60 = 0;
       if (var60 < var59) {
         while (1) {
-          if (((nbp__net_state->active_local_app_ids[var60] == var43) && (nbp__net_state->active_remote_app_ids[var60] == var49)) && (memcmp(nbp__net_state->active_remote_host_ids[var60], var52, 6) == 0)) {
+          if (((nbp__net_state->active_local_app_ids[var60] == var43) &&
+               (nbp__net_state->active_remote_app_ids[var60] == var49)) &&
+              (memcmp(nbp__net_state->active_remote_host_ids[var60], var52,
+                      6) == 0)) {
             var57 = nbp__net_state->active_connections[var60];
             break;
           } else {
             var60 = var60 + 1;
             if (!(var60 < var59)) {
               break;
-            } 
+            }
           }
         }
-      } 
+      }
       if (var57 != 0) {
         unsigned long long int var68 = (unsigned long long)(var57);
         unsigned long long int* var72 = (void*)(arg0 + 12);
@@ -167,7 +184,8 @@ void nbp__run_ingress_step (void* arg0, int arg1) {
         nbp__connection_t* var85 = (void*)(var83[0]);
         if (var78 != 0) {
           unsigned int var86 = var78 % 32;
-          unsigned long long int* var92 = (void*)(var85->redelivery_buffer[var86] + 4);
+          unsigned long long int* var92 =
+              (void*)(var85->redelivery_buffer[var86] + 4);
           nbp__timer* var94 = (void*)(var92[0]);
           nbp__remove_timer(var94);
           nbp__return_timer(var94);
@@ -205,9 +223,10 @@ void nbp__run_ingress_step (void* arg0, int arg1) {
           if ((var161 - var155) % 2) {
             var149[var161] = 0;
             var161 = var161 + 1;
-          } 
+          }
           unsigned short int var162 = 0;
-          for (char* var163 = var149 + var155; var163 < (var149 + var161); var163 = var163 + 2) {
+          for (char* var163 = var149 + var155; var163 < (var149 + var161);
+               var163 = var163 + 2) {
             unsigned short int* var164 = (void*)(var163);
             var162 = var162 + var164[0];
           }
@@ -219,7 +238,8 @@ void nbp__run_ingress_step (void* arg0, int arg1) {
           nbp__connection_t* var188 = (void*)(var186[0]);
           unsigned int* var194 = (void*)(arg0 + 50);
           int* var200 = (void*)(arg0 + 36);
-          nbp__insert_data_queue(var188->input_queue, arg0 + 58, var200[0] - 38);
+          nbp__insert_data_queue(var188->input_queue, arg0 + 58,
+                                 var200[0] - 38);
         }
       } else {
         nbp__connection_t* var208 = 0;
@@ -227,29 +247,33 @@ void nbp__run_ingress_step (void* arg0, int arg1) {
         int var211 = 0;
         if (var211 < var210) {
           while (1) {
-            if (((nbp__net_state->active_local_app_ids[var211] == var43) && (nbp__net_state->active_remote_app_ids[var211] == 0)) && (memcmp(nbp__net_state->active_remote_host_ids[var211], nbp__wildcard_host_identifier, 6) == 0)) {
+            if (((nbp__net_state->active_local_app_ids[var211] == var43) &&
+                 (nbp__net_state->active_remote_app_ids[var211] == 0)) &&
+                (memcmp(nbp__net_state->active_remote_host_ids[var211],
+                        nbp__wildcard_host_identifier, 6) == 0)) {
               var208 = nbp__net_state->active_connections[var211];
               break;
             } else {
               var211 = var211 + 1;
               if (!(var211 < var210)) {
                 break;
-              } 
+              }
             }
           }
-        } 
+        }
         var57 = var208;
         if (var57 != 0) {
           nbp__insert_accept_queue(var57->accept_queue, var49, var52, arg0);
-        } 
+        }
       }
-    } 
-  } 
+    }
+  }
 }
 
-void nbp__reliable_redelivery_timer_cb (nbp__timer* arg0, void* arg1, unsigned long long int arg2) {
-  int* var7 = (void*)(arg1 + 36);
-  nbp__send_packet(arg1 + 20, var7[0]);
-  nbp__insert_timer(arg0, arg2 + 50000, nbp__reliable_redelivery_timer_cb, arg1);
+void nbp__reliable_redelivery_timer_cb(nbp__timer* arg0, void* arg1,
+                                       unsigned long long int arg2) {
+  // int* var7 = (void*)(arg1 + 36);
+  // nbp__send_packet(arg1 + 20, var7[0]);
+  // nbp__insert_timer(arg0, arg2 + 50000000, nbp__reliable_redelivery_timer_cb,
+  // arg1);
 }
-

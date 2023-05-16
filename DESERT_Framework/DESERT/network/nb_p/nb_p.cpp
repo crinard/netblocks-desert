@@ -14,7 +14,7 @@
 
 #include "nb_p.h"
 #include "nb_runtime.h"
-#define MAX_TX_LEN 10000
+#define MAX_TX_LEN 980
 #define TELEM_FILE_PATH "/home/crinard/Desktop/DESERT_Underwater/DESERT_Framework/example_data/navlog.txt" 
 #define VIDEO_FILE_PATH "/home/crinard/Desktop/sample_video.mp4" //TODO: Fix this
 extern char nb__my_host_id[];
@@ -54,7 +54,7 @@ static void callback(int event, nb__connection_t * c) {
 	}
 }
 
-Nb_pModule::Nb_pModule():chkTimerPeriod(this, false), chkNetBlocksTimer(this, true) {
+Nb_pModule::Nb_pModule():chkTimerPeriod(this, false), chkNetBlocksTimer(this, true), period_(60.0) {
 	nb__desert_init((void*)this);
 	nb__net_init();
 	char server_id[] = {0, 0, 0, 0, 0, 1};
@@ -62,10 +62,10 @@ Nb_pModule::Nb_pModule():chkTimerPeriod(this, false), chkNetBlocksTimer(this, tr
 	memcpy(nb__my_host_id, server_id, 6);
 	conn = nb__establish(client_id, 8080, 8081, callback);
 	chkNetBlocksTimer.resched(10.0);
-	chkTimerPeriod.resched(60.0);
 	recvBuf = (Packet**) calloc(READ_BUF_LEN, sizeof(Packet*));
 	recvBufLen = 0;
 	sim_type = NOT_SET;
+	bind("period_", &period_);
 }
 
 Nb_pModule::~Nb_pModule(){
@@ -115,9 +115,6 @@ int Nb_pModule::command(int argc, const char *const *argv)
 		} else if (strcasecmp(argv[1], "settelem") == 0) {
 			if (set_mode_telem()) return TCL_OK;
 			return TCL_ERROR;
-		} else if (strcasecmp(argv[1], "setvideostream") == 0) {
-			if (set_mode_video()) return TCL_OK;
-			return TCL_ERROR;
 		}
 	}
 	return Module::command(argc, argv);
@@ -137,7 +134,7 @@ void Nb_pModule::recv(Packet *p)
 }
 
 void Nb_pModule::start_gen(void) {
-	chkTimerPeriod.resched(60.0);
+	chkTimerPeriod.resched(period_);
 }
 
 void Nb_pModule::stop_gen(void) {
@@ -153,91 +150,25 @@ void Nb_pModule::uwSendTimerAppl::expire(Event *e)
 		nb__main_loop_step();
 		m_->chkNetBlocksTimer.resched(10.0);
 	} else {
-		m_->sendPkt();
-		m_->chkTimerPeriod.resched(120.0); // schedule next transmission
+		m_->sendPkt();		
+		nb__main_loop_step();
+		m_->chkTimerPeriod.resched(m_->period_); // schedule next transmission
 	}
 }
 
 void Nb_pModule::sendPkt(void) {
 	if (sim_type == NOT_SET) {
 		std::cerr << "sim_type not set\n";
-		nb__send(conn, "Hello from ServerHello from ServerHello from ServerHello from ServerHello from ServerHello from Server", sizeof("Hello from ServerHello from ServerHello from ServerHello from ServerHello from ServerHello from Server"));
+		nb__send(conn, "Hello", sizeof("Hello"));
 		sent_packets++;
-		sent_bytes += sizeof("Hello from ServerHello from ServerHello from ServerHello from ServerHello from ServerHello from Server");
+		sent_bytes += sizeof("Hello");
 		return;
-	} else if (sim_type == VIDEO_STREAM) {
-		int len = MAX_TX_LEN;
-		char* buff = genVideoPkt(&len);
-		assert(len < MAX_TX_LEN);
-		nb__send(conn, buff, len);
-		sent_packets++;
-		sent_bytes += len;
 	} else if (sim_type == CONTROL_STREAM) {
-		int len = MAX_TX_LEN;
-		sendTelemPkt();
-		std::cerr << "send telem pkt, len = " << len << "\n";
+		int r = rand() % 100;
+		nb__send(conn, CONTROL_MSG, sizeof(CONTROL_MSG) -r);
+		sent_packets++;
+		sent_bytes += sizeof(CONTROL_MSG) - r;
 	}
-}
-
-char* Nb_pModule::genVideoPkt(int * size) {
-	std::string lines[1000];
-	// std::ifstream myfile(VIDEO_FILE_PATH);
-	int a = 0;
-	// if(!myfile) {
-	// 	std::cerr << "VIDEO FILE NOT FOUND\n";
-	// 	return NULL;
-	// }
-	// if (!myfile.eof()) {
-	// 	getline(myfile, lines[a],'\n');
-	// 	a++;
-	// }
-	char* buf = (char*)malloc(lines[a].size());
-	memcpy(buf, lines[a].c_str(), lines[a].size());		
-	// *size = lines[a].size();		
-	return buf;
-}
-
-void Nb_pModule::sendTelemPkt(void) {
-	FILE* file = fopen(TELEM_FILE_PATH, "r");  // Open the input file in read mode
-    if (file == NULL) {
-        printf("Failed to open the file.\n");
-        return;
-    }
-
-    fseek(file, 0, SEEK_END);  // Move the file pointer to the end of the file
-    long file_size = ftell(file);  // Get the current position (which is the file size)
-    rewind(file);  // Reset the file pointer to the beginning of the file
-
-    char* buffer = (char*)malloc(file_size + 1);  // Allocate memory for the buffer
-    if (buffer == NULL) {
-        printf("Failed to allocate memory.\n");
-        return;
-    }
-
-    size_t result = fread(buffer, 1, file_size, file);  // Read the file into the buffer
-    if (result != file_size) {
-        printf("Failed to read the file.\n");
-        return;
-    }
-
-    buffer[file_size] = '\0';  // Add a null terminator at the end of the buffer
-
-    // printf("Contents of the file:\n%s\n", buffer);
-
-    // fclose(file);  // Close the file
-	size_t i = 0;
-	// for (i = 0; i * 980 < tosend.size(); i++) {
-	// 	std::string tmp = tosend.substr(i * 980, 980);
-	// 	char * tmpbuf = (char*)malloc(tmp.size() * sizeof(char));
-	// 	memcpy(tmpbuf, tmp.c_str(), tmp.size() * sizeof(char));
-	// 	nb__send(conn, tmpbuf, tmp.size());
-	// 	sent_packets++;
-	// 	sent_bytes += tmp.size();
-	// }
-	nb__send(conn, buffer, 400);
-	sent_packets++;
-	sent_bytes += 400;
-	return;
 }
 
 double Nb_pModule::getSentPkts(void) {
@@ -263,12 +194,6 @@ bool Nb_pModule::set_mode_telem(void) {
 	if (sim_type != NOT_SET)
 		return false;
 	sim_type = CONTROL_STREAM;
-	return true;
-}
-bool Nb_pModule::set_mode_video(void) {
-	if (sim_type != NOT_SET)
-		return false;
-	sim_type = VIDEO_STREAM;
 	return true;
 }
 

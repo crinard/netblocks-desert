@@ -20,7 +20,6 @@
 
 typedef enum type_sim_p {
 	NOT_SET,
-	VIDEO_STREAM,
 	CONTROL_STREAM
 } type_sim_t_p;
 
@@ -131,11 +130,8 @@ protected:
 	type_sim_t_p sim_type;
 	virtual double getRecvBytes(void);
 	virtual double getSentBytes(void);
-	virtual char* genTelemPkt(int * size);
-	virtual char* genVideoPkt(int * size);
 	virtual bool set_mode_telem(void);
-	virtual bool set_mode_video(void);
-
+	double period_;
 };
-
+#define CONTROL_MSG ("KPAO KPAO RJAA May 07 2023 in N819LA DA40 DA40 B757 NULUK R220 NIPPI R220 NANAC OTR10 KAGIS BOSPA BOSPSB  B757 NULUK R220 NIPPI R220 NANAC OTR10 KAGIS BOSPA BOSPS")
 #endif // _NB_P_H_

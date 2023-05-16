@@ -55,17 +55,17 @@ static void callback(int event, nbp__connection_t * c) {
 	}
 }
 
-Nb_p_recv_Module::Nb_p_recv_Module():chkTimerPeriod(this, false), chkNetBlocksTimer(this, true) {
+Nb_p_recv_Module::Nb_p_recv_Module():chkTimerPeriod(this, false), chkNetBlocksTimer(this, true), period_(60.0) {
 	nbp__desert_init((void*)this);
 	nbp__net_init();
 	char server_id[] = {0, 0, 0, 0, 0, 1};
 	char client_id[] = {0, 0, 0, 0, 0, 2};
 	memcpy(nbp__my_host_id, client_id, 6);
 	conn = nbp__establish(server_id, 8081, 8080, callback);
-	chkNetBlocksTimer.resched(60.0);
-	chkTimerPeriod.resched(120.0);
+	chkNetBlocksTimer.resched(10.0);
 	recvBuf = (Packet**) calloc(READ_BUF_LEN, sizeof(Packet*));
 	recvBufLen = 0;
+	bind("period_", &period_);
 }
 
 Nb_p_recv_Module::~Nb_p_recv_Module(){
@@ -144,7 +144,7 @@ void Nb_p_recv_Module::recv(Packet *p)
 }
 
 void Nb_p_recv_Module::start_gen(void) {
-	chkTimerPeriod.resched(120.0);
+	chkTimerPeriod.resched(period_);
 }
 
 void Nb_p_recv_Module::stop_gen(void) {
@@ -161,50 +161,23 @@ void Nb_p_recv_Module::uwSendTimerAppl::expire(Event *e)
 		m_->chkNetBlocksTimer.resched(10.0);
 	} else {
 		m_->sendPkt();
-		m_->chkTimerPeriod.resched(120.0); // schedule next transmission
+		m_->chkTimerPeriod.resched(m_->period_); // schedule next transmission
 	}
-}
-
-char* Nb_p_recv_Module::genVideoPkt(int * size) {
-	std::string lines[1000];
-	std::ifstream myfile(VIDEO_FILE_PATH);
-	int a = 0;
-	if(!myfile) {
-		std::cerr << "VIDEO FILE NOT FOUND\n";
-		return NULL;
-	}
-	if (!myfile.eof()) {
-		getline(myfile, lines[a],'\n');
-		a++;
-	}
-	char* buf = (char*)malloc(lines[a].size());
-	memcpy(buf, lines[a].c_str(), lines[a].size());		
-	*size = lines[a].size();		
-	return buf;
-}
-
-char* Nb_p_recv_Module::genTelemPkt(int * size) {
-	std::ifstream fin(TELEM_FILE_PATH);
-	std::string tmp;
-	if(!fin) {
-		std::cerr << "TELEM FILE NOT FOUND\n";
-		return NULL;
-	}
-	for (int i = 0; !fin.eof(); i++) {
-		getline(fin, tmp, '\n');
-	}
-	char* buf = (char*)malloc(tmp.size());
-	memcpy(buf, tmp.c_str(), tmp.size());		
-	*size = tmp.size();
-	fin.close();
-	return buf;
 }
 
 void Nb_p_recv_Module::sendPkt(void) {
 	// fprintf(stdout, "sendPkt()\n");
-	nbp__send(conn, "Client says hello", sizeof("Client says hello"));
-	sent_packets++;
-	sent_bytes+=sizeof("Client says hello");
+	if (sim_type == NOT_SET) {
+		nbp__send(conn, "Hello", sizeof("Hello"));
+		sent_packets++;
+		sent_bytes+=sizeof("Hello");
+	} else if (sim_type == CONTROL_STREAM) {
+		int r = rand() % 100;
+		nbp__send(conn, CONTROL_MSG, sizeof(CONTROL_MSG) -r);
+		sent_packets++;
+		sent_bytes += sizeof(CONTROL_MSG) - r;
+	}
+	
 }
 
 double Nb_p_recv_Module::getSentPkts(void) {
@@ -236,11 +209,5 @@ bool Nb_p_recv_Module::set_mode_telem(void) {
 	if (sim_type != NOT_SET)
 		return false;
 	sim_type = CONTROL_STREAM;
-	return true;
-}
-bool Nb_p_recv_Module::set_mode_video(void) {
-	if (sim_type != NOT_SET)
-		return false;
-	sim_type = VIDEO_STREAM;
 	return true;
 }

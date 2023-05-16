@@ -156,6 +156,8 @@ proc createNodes {} {
     
     set node(0) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
     set node(1) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
+    Module/UW/Nb_p set period_ 60.0
+    Module/UW/Nb_p_recv set period 60.0  
 
     set prnt(0)  [new Module/UW/Nb_p_recv]
     set prnt(1)  [new Module/UW/Nb_p]
