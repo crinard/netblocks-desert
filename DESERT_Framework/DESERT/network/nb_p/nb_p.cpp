@@ -7,196 +7,175 @@
  * Provides the class implementation of NB_P.
  */
 
+#include "nb_p.h"
+
 #include <stdlib.h>
-#include <iostream>
+
 #include <fstream>
+#include <iostream>
 #include <string>
 
-#include "nb_p.h"
 #include "nb_runtime.h"
+using namespace nb1;
 #define MAX_TX_LEN 980
-#define TELEM_FILE_PATH "/home/crinard/Desktop/DESERT_Underwater/DESERT_Framework/example_data/navlog.txt" 
-#define VIDEO_FILE_PATH "/home/crinard/Desktop/sample_video.mp4" //TODO: Fix this
-extern char nb__my_host_id[];
+#define TELEM_FILE_PATH                                                    \
+  "/home/crinard/Desktop/DESERT_Underwater/DESERT_Framework/example_data/" \
+  "navlog.txt"
+#define VIDEO_FILE_PATH \
+  "/home/crinard/Desktop/sample_video.mp4"  // TODO: Fix this
+extern char nb1::nb__my_host_id[];
 
 /**
  * Adds the module for Nb_pModuleClass in ns2.
  */
-static class Nb_pModuleClass : public TclClass
-{
-public:
-	Nb_pModuleClass()
-		: TclClass("Module/UW/Nb_p")
-	{
-	}
+static class Nb_pModuleClass : public TclClass {
+ public:
+  Nb_pModuleClass() : TclClass("Module/UW/Nb_p") {}
 
-	TclObject *
-	create(int, const char *const *)
-	{
-		return (new Nb_pModule);
-	}
+  TclObject *create(int, const char *const *) { return (new Nb_pModule); }
 } class_nb_p_module;
 
 static int recvd_packets = 0;
 static size_t recvd_bytes = 0;
 static int sent_packets = 0;
 static int sent_bytes = 0;
-static char* freebuf[100];
+static char *freebuf[100];
 
-static void callback(int event, nb__connection_t * c) {
-	if (event == QUEUE_EVENT_READ_READY) {
-		char buff[1000];
-		int len = nb__read(c, buff, 1000);
-		buff[len] = 0;	
-		printf("Server recieved %s from client\n", buff);	
-		recvd_packets++;
-		recvd_bytes += len;
-	}
+static void callback(int event, nb__connection_t *c) {
+  if (event == QUEUE_EVENT_READ_READY) {
+    char buff[1000];
+    int len = nb__read(c, buff, 1000);
+    buff[len] = 0;
+    printf("Server recieved %s from client\n", buff);
+    recvd_packets++;
+    recvd_bytes += len;
+  }
 }
 
-Nb_pModule::Nb_pModule():chkTimerPeriod(this, false), chkNetBlocksTimer(this, true), period_(60.0) {
-	nb__desert_init((void*)this);
-	nb__net_init();
-	char server_id[] = {0, 0, 0, 0, 0, 1};
-	char client_id[] = {0, 0, 0, 0, 0, 2};
-	memcpy(nb__my_host_id, server_id, 6);
-	conn = nb__establish(client_id, 8080, 8081, callback);
-	chkNetBlocksTimer.resched(10.0);
-	recvBuf = (Packet**) calloc(READ_BUF_LEN, sizeof(Packet*));
-	recvBufLen = 0;
-	sim_type = NOT_SET;
-	bind("period_", &period_);
+Nb_pModule::Nb_pModule()
+    : chkTimerPeriod(this, false),
+      chkNetBlocksTimer(this, true),
+      period_(60.0) {
+  nb__desert_init((void *)this);
+  nb__net_init();
+  char server_id[] = {0, 0, 0, 0, 0, 1};
+  char client_id[] = {0, 0, 0, 0, 0, 2};
+  memcpy(nb1::nb__my_host_id, server_id, 6);
+  conn = nb__establish(client_id, 8080, 8081, callback);
+  chkNetBlocksTimer.resched(10.0);
+  recvBuf = (Packet **)calloc(READ_BUF_LEN, sizeof(Packet *));
+  recvBufLen = 0;
+  sim_type = NOT_SET;
+  bind("period_", &period_);
 }
 
-Nb_pModule::~Nb_pModule(){
-	nb__destablish(conn);
-	chkNetBlocksTimer.force_cancel();
-	chkTimerPeriod.force_cancel();
+Nb_pModule::~Nb_pModule() {
+  nb__destablish(conn);
+  chkNetBlocksTimer.force_cancel();
+  chkTimerPeriod.force_cancel();
 }
 
-int Nb_pModule::recvSyncClMsg(ClMessage *m)
-{
-	return Module::recvSyncClMsg(m);
+int Nb_pModule::recvSyncClMsg(ClMessage *m) { return Module::recvSyncClMsg(m); }
+
+int Nb_pModule::command(int argc, const char *const *argv) {
+  Tcl &tcl = Tcl::instance();
+  if (argc == 2) {
+    if (strcasecmp(argv[1], "start") == 0) {
+      std::cout << "***********start***********\n";
+      start_gen();
+      return TCL_OK;
+    } else if (strcasecmp(argv[1], "stop") == 0) {
+      std::cout << "***********stop***********\n";
+      stop_gen();
+      return TCL_OK;
+    } else if (strcasecmp(argv[1], "getsentpkts") == 0) {
+      tcl.resultf("%f", getSentPkts());
+      return TCL_OK;
+    } else if (strcasecmp(argv[1], "getrecvpkts") == 0) {
+      tcl.resultf("%f", getRecvPkts());
+      return TCL_OK;
+    } else if (strcasecmp(argv[1], "getdroppkts") == 0) {
+      tcl.resultf("%f", getDropPkts());
+      return TCL_OK;
+    } else if (strcasecmp(argv[1], "getdelay") == 0) {
+      tcl.resultf("%f", getDelay());
+      return TCL_OK;
+    } else if (strcasecmp(argv[1], "getheadersize") == 0) {
+      tcl.resultf("%f", getHeaderSize());
+      return TCL_OK;
+    } else if (strcasecmp(argv[1], "getrecvbytes") == 0) {
+      tcl.resultf("%f", getRecvBytes());
+      return TCL_OK;
+    } else if (strcasecmp(argv[1], "getsentbytes") == 0) {
+      tcl.resultf("%f", getSentBytes());
+      return TCL_OK;
+    } else if (strcasecmp(argv[1], "settelem") == 0) {
+      if (set_mode_telem()) return TCL_OK;
+      return TCL_ERROR;
+    }
+  }
+  return Module::command(argc, argv);
 }
 
-int Nb_pModule::command(int argc, const char *const *argv)
-{
-	Tcl &tcl = Tcl::instance();
-	if (argc == 2) {
-		if (strcasecmp(argv[1], "start") == 0) {
-			std::cout << "***********start***********\n";
-			start_gen();
-			return TCL_OK;
-		} else if (strcasecmp(argv[1], "stop") == 0) {
-			std::cout << "***********stop***********\n";
-			stop_gen();
-			return TCL_OK;
-		} else if (strcasecmp(argv[1], "getsentpkts") == 0) {
-			tcl.resultf("%f", getSentPkts());
-			return TCL_OK;
-		} else if (strcasecmp(argv[1], "getrecvpkts") == 0) {
-			tcl.resultf("%f", getRecvPkts());
-			return TCL_OK;
-		} else if (strcasecmp(argv[1], "getdroppkts") == 0) {
-			tcl.resultf("%f", getDropPkts());
-			return TCL_OK;
-		} else if (strcasecmp(argv[1], "getdelay") == 0) {
-			tcl.resultf("%f", getDelay());
-			return TCL_OK;
-		} else if (strcasecmp(argv[1], "getheadersize") == 0) {
-			tcl.resultf("%f", getHeaderSize());
-			return TCL_OK;
-		} else if (strcasecmp(argv[1], "getrecvbytes") == 0) {
-			tcl.resultf("%f", getRecvBytes());
-			return TCL_OK;
-		} else if (strcasecmp(argv[1], "getsentbytes") == 0) {
-			tcl.resultf("%f", getSentBytes());
-			return TCL_OK;
-		} else if (strcasecmp(argv[1], "settelem") == 0) {
-			if (set_mode_telem()) return TCL_OK;
-			return TCL_ERROR;
-		}
-	}
-	return Module::command(argc, argv);
+void Nb_pModule::recv(Packet *p) {
+  hdr_cmn *ch = HDR_CMN(p);
+  if (ch->direction() != hdr_cmn::UP) {
+    std::cerr << "Something weird here, packet direction is not UP"
+              << std::endl;
+  } else {
+    assert(recvBufLen < READ_BUF_LEN);
+    recvBuf[recvBufLen] = p;
+    recvBufLen++;
+  }
+  return;
 }
 
-void Nb_pModule::recv(Packet *p)
-{
-	hdr_cmn *ch = HDR_CMN(p);
-	if(ch->direction() != hdr_cmn::UP) {
-		std::cerr << "Something weird here, packet direction is not UP" << std::endl;
-	} else {
-		assert(recvBufLen < READ_BUF_LEN);
-		recvBuf[recvBufLen] = p;
-		recvBufLen++;	
-	}
-	return;
-}
-
-void Nb_pModule::start_gen(void) {
-	chkTimerPeriod.resched(period_);
-}
+void Nb_pModule::start_gen(void) { chkTimerPeriod.resched(period_); }
 
 void Nb_pModule::stop_gen(void) {
-	std::cout << "stop_gen\n";
-	chkTimerPeriod.force_cancel();
-	chkNetBlocksTimer.force_cancel();
-	nb__desert_deinit();
+  std::cout << "stop_gen\n";
+  chkTimerPeriod.force_cancel();
+  chkNetBlocksTimer.force_cancel();
+  nb__desert_deinit();
 }
 
-void Nb_pModule::uwSendTimerAppl::expire(Event *e)
-{
-	if (isNb_) {
-		nb__main_loop_step();
-		m_->chkNetBlocksTimer.resched(10.0);
-	} else {
-		m_->sendPkt();		
-		nb__main_loop_step();
-		m_->chkTimerPeriod.resched(m_->period_); // schedule next transmission
-	}
+void Nb_pModule::uwSendTimerAppl::expire(Event *e) {
+  if (isNb_) {
+    nb__main_loop_step();
+    m_->chkNetBlocksTimer.resched(10.0);
+  } else {
+    m_->sendPkt();
+    nb__main_loop_step();
+    m_->chkTimerPeriod.resched(m_->period_);  // schedule next transmission
+  }
 }
 
 void Nb_pModule::sendPkt(void) {
-	if (sim_type == NOT_SET) {
-		std::cerr << "sim_type not set\n";
-		nb__send(conn, "Hello", sizeof("Hello"));
-		sent_packets++;
-		sent_bytes += sizeof("Hello");
-		return;
-	} else if (sim_type == CONTROL_STREAM) {
-		int r = rand() % 100;
-		nb__send(conn, CONTROL_MSG, sizeof(CONTROL_MSG) -r);
-		sent_packets++;
-		sent_bytes += sizeof(CONTROL_MSG) - r;
-	}
+  if (sim_type == NOT_SET) {
+    std::cerr << "sim_type not set\n";
+    nb__send(conn, "Hello", sizeof("Hello"));
+    sent_packets++;
+    sent_bytes += sizeof("Hello");
+    return;
+  } else if (sim_type == CONTROL_STREAM) {
+    int r = rand() % 100;
+    nb__send(conn, CONTROL_MSG, sizeof(CONTROL_MSG) - r);
+    sent_packets++;
+    sent_bytes += sizeof(CONTROL_MSG) - r;
+  }
 }
 
-double Nb_pModule::getSentPkts(void) {
-	return sent_packets;
-}
-double Nb_pModule::getRecvPkts(void) {
-	return recvd_packets;
-}
+double Nb_pModule::getSentPkts(void) { return sent_packets; }
+double Nb_pModule::getRecvPkts(void) { return recvd_packets; }
 
-double Nb_pModule::getDropPkts(void) {
-	return 0.0;
-}
-double Nb_pModule::getDelay(void) {
-	return 0.0;
-}
-double Nb_pModule::getRecvBytes(void) {
-	return recvd_bytes;
-}
-double Nb_pModule::getHeaderSize(void) {
-	return 0.0;
-}
+double Nb_pModule::getDropPkts(void) { return 0.0; }
+double Nb_pModule::getDelay(void) { return 0.0; }
+double Nb_pModule::getRecvBytes(void) { return recvd_bytes; }
+double Nb_pModule::getHeaderSize(void) { return 0.0; }
 bool Nb_pModule::set_mode_telem(void) {
-	if (sim_type != NOT_SET)
-		return false;
-	sim_type = CONTROL_STREAM;
-	return true;
+  if (sim_type != NOT_SET) return false;
+  sim_type = CONTROL_STREAM;
+  return true;
 }
 
-double Nb_pModule::getSentBytes(void) {
-	return sent_bytes;
-}
+double Nb_pModule::getSentBytes(void) { return sent_bytes; }
