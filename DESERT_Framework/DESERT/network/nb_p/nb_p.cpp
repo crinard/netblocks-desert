@@ -39,7 +39,7 @@ static int recvd_packets = 0;
 static size_t recvd_bytes = 0;
 static int sent_packets = 0;
 static int sent_bytes = 0;
-static char *freebuf[100];
+// static char *freebuf[100];
 
 static void callback(int event, nb__connection_t *c) {
   if (event == QUEUE_EVENT_READ_READY) {
@@ -56,8 +56,9 @@ Nb_pModule::Nb_pModule()
     : chkTimerPeriod(this, false),
       chkNetBlocksTimer(this, true),
       period_(60.0) {
-  nb__desert_init((void *)this);
-  nb__net_init();
+  using namespace nb1;
+  nb1::nb__desert_init((void *)this);
+  nb1::nb__net_init();
   char server_id[] = {0, 0, 0, 0, 0, 1};
   char client_id[] = {0, 0, 0, 0, 0, 2};
   memcpy(nb1::nb__my_host_id, server_id, 6);
