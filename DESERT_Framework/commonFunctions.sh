@@ -342,45 +342,6 @@ wizard_function_destFolder() {
     printf '%s\n' "--dest_folder ${DEST_FOLDER} " >> ${INSTALL_CONF}
 }
 
-wizard_function_wossRequire() {
-    sleep ${SLEEP05}
-    printf "\n"
-    wizard__print_L2 "Setting of the WOSS_${WOSS_VERSION} libraries installation."
-    wizard__print_L3 "WARNING: To install the WOSS libraries, you need the gfortran compiler "
-    wizard__print_L3 "         to be available on your OS."
-    wizard__print_L3 "         If you are using a Debian-based OS, you can try to execute"
-    wizard__print_L3 "         this command: sudo apt-get install gfortran"
-    wizard__print_L3 "WARNING: If you want to use enviromental databases for SSP, bathymetry,"
-    wizard__print_L3 "         sediments, as well as for the characteristics of electro-acoustic transducers"
-    wizard__print_L3 "         You can download the sediment and SSP databases at the following link:"
-    wizard__print_L3 "         http://telecom.dei.unipd.it/ns/woss/files/WOSS-dbs-v1.4.0.tar.gz"
-    wizard__print_L3 "         Please note that we cannot redistribute the GEBCO bathymetry database"
-    wizard__print_L3 "         You can download the database by registering on the GEBCO web site at:"
-    wizard__print_L3 "         http://http://www.gebco.net/"
-    printf "Do you need the WOSS_${WOSS_VERSION} libraries (N, by default)?"
-    woss_require=""
-    read_input "woss_require"
-    case "${woss_require}" in
-        [Yy]|[Yy]es)
-            WITHWOSS=1
-            printf '%s\n' "--with-woss " >> ${INSTALL_CONF}
-            ;;
-        [Nn]|[Nn]o)
-            WITHWOSS=0
-            ;;
-        "")
-            WITHWOSS=0
-            ;;
-        *)
-            err_L1 "Input ${woss_require} not valid. Please write yes (y) or no (n)"
-            wizard_function_wossRequire
-            ;;
-    esac
-    _WITHWOSS=1
-    log_L1 "_WITHWOSS=${_WITHWOSS}" install.log
-    log_L2 "woss_require=${woss_require}" install.log
-    log_L2 "WITHWOSS=${WITHWOSS}" install.log
-}
 
 wizard_function_customPar() {
     sleep ${SLEEP05}

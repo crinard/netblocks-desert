@@ -55,37 +55,6 @@ check_sh
 #PRIVATE_VARIABLEs
 SLEEP05=0.5
 
-
-# Terminal parameters check
-if [ $# -eq 0 ]; then
-    install__print_help
-
-    logERR "[Terminal_parameter_check]: exit_1" ${INSTALL_LOG}
-    exit 1
-fi
-
-#------
-
-#Getopt setting --
-shortOpt="abcd:e:f:g:hi:lm"
-longOpt="wizard,\
-         with-woss,\
-         without-woss,\
-         target:,\
-         inst_mode:,\
-         dest_folder:,\
-         custom_par:,\
-         help,\
-         addons:,\
-         wizard-conf,\
-         wizard-asOwner"
-ARGS=$(getopt -o $shortOpt   \
-              -l "$longOpt"  \
-              -n "install.sh" \
-              -- "$@");
-RETOPT_GETOPT=$?
-
-
 DEST_FOLDER="/home/crinard/Desktop/DESERT_Underwater/DESERT_buildCopy_LOCAL"
 BUILD_HOST="${DEST_FOLDER}/.buildHost"
 BUILD_TARGET="${DEST_FOLDER}/.buildTarget"
