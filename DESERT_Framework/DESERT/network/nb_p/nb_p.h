@@ -19,7 +19,6 @@
 #include "nb_runtime.h"
 #include "packet.h"
 
-using namespace nb1;
 typedef enum type_sim { NOT_SET, CONTROL_STREAM } type_sim_t;
 
 namespace {
@@ -112,12 +111,15 @@ class Nb_pModule : public Module {
   uwSendTimerAppl chkNetBlocksTimer;
   type_sim_t sim_type;
 #define READ_BUF_LEN 1000
-  nb__connection_t *conn;
+  void *conn;  // @NOTE: this is nb__connection_t type, treated as void to get
+               // around choosing between nb1, nb2, ...
   Packet **recvBuf;
   size_t recvBufLen;
   double period_;
+  int instance_num;
+  // int instance_cnt;
 };
-
+// int Nb_pModule::instance_cnt = 0;
 #define CONTROL_MSG                                                         \
   ("KPAO KPAO RJAA May 07 2023 in N819LA DA40 DA40 B757 NULUK R220 NIPPI "  \
    "R220 NANAC OTR10 KAGIS BOSPA BOSPSB  B757 NULUK R220 NIPPI R220 NANAC " \
