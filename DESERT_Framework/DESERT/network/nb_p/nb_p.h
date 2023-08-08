@@ -117,7 +117,6 @@ class Nb_pModule : public Module {
   size_t recvBufLen;
   double period_;
   int instance_num;
-  // int instance_cnt;
 };
 // int Nb_pModule::instance_cnt = 0;
 #define CONTROL_MSG                                                         \

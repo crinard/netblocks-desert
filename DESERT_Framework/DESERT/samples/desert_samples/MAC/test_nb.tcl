@@ -159,7 +159,7 @@ proc createNodes {} {
     Module/UW/Nb_p set period_ 58.0
     Module/UW/Nb_p_recv set period_ 10.0  
 
-    set prnt(0)  [new Module/UW/Nb_p_recv]
+    set prnt(0)  [new Module/UW/Nb_p]
     set prnt(1)  [new Module/UW/Nb_p]
     set mac(0)  [new Module/UW/CSMA_ALOHA] 
     set mac(1)  [new Module/UW/CSMA_ALOHA] 

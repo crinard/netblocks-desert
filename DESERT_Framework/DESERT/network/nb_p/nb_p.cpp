@@ -23,7 +23,9 @@
 #define VIDEO_FILE_PATH \
   "/home/crinard/Desktop/sample_video.mp4"  // TODO: Fix this
 extern char nb1::nb__my_host_id[];
+extern char nb2::nb__my_host_id[];
 
+static int num_instances = 0;
 /**
  * Adds the module for Nb_pModuleClass in ns2.
  */
@@ -63,8 +65,8 @@ Nb_pModule::Nb_pModule()
     : chkTimerPeriod(this, false),
       chkNetBlocksTimer(this, true),
       period_(60.0) {
-  instance_num = 0;
-  // instance_cnt++;
+  instance_num = num_instances;
+  num_instances++;
   if (instance_num == 0) {
     nb1::nb__desert_init((void *)this);
     nb1::nb__net_init();
@@ -82,8 +84,8 @@ Nb_pModule::Nb_pModule()
     nb2::nb__net_init();
     char server_id[] = {0, 0, 0, 0, 0, 1};
     char client_id[] = {0, 0, 0, 0, 0, 2};
-    memcpy(nb2::nb__my_host_id, server_id, 6);
-    conn = (void *)nb2::nb__establish(client_id, 8080, 8081, callbackNB2);
+    memcpy(nb2::nb__my_host_id, client_id, 6);
+    conn = (void *)nb2::nb__establish(server_id, 8081, 8080, callbackNB2);
     chkNetBlocksTimer.resched(10.0);
     recvBuf = (Packet **)calloc(READ_BUF_LEN, sizeof(Packet *));
     recvBufLen = 0;
