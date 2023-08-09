@@ -79,10 +79,10 @@ if [ $? -ne 0 ]; then
 fi
 
 current_dir=$PWD
+echo "current_dir"
 cd $current_dir/DESERT/network/nb_p/net-blocks/
 make simple_desert DEBUG=1
-cd $current_dir/DESERT/network/nb_p_recv/net-blocks/
-make simple_desert_nbp DEBUG=1
+echo "current_dir1"
 cd $current_dir
 
 info_L0 "call_installer"
@@ -94,7 +94,6 @@ fi
 if [ ${_ADDONS} -ne 1 ]; then
     delete_recursive_soft_link
 fi
-
 info_L0 "after_building"
 after_building
 if [ $? -ne 0 ]; then

@@ -71,7 +71,6 @@ load libuwmll.so
 load libuwudp.so
 load libuwnetblocks.so
 load libnb_p.so
-load libnb_p_recv.so
 load libuwcbr.so
 load libuwcsmaaloha.so
 
@@ -157,7 +156,6 @@ proc createNodes {} {
     set node(0) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
     set node(1) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
     Module/UW/Nb_p set period_ 58.0
-    Module/UW/Nb_p_recv set period_ 10.0  
 
     set prnt(0)  [new Module/UW/Nb_p]
     set prnt(1)  [new Module/UW/Nb_p]

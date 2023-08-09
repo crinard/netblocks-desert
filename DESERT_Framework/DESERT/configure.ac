@@ -142,7 +142,7 @@ AC_DEFINE(CPP_NAMESPACE,std)
 
 AC_CHECK_LIB(pthread, pthread_create, [LIBS="$LIBS -lpthread"]) 
 
-LIBS="$LIBS /home/crinard/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/net-blocks/../.build/libmynb_p.a /home/crinard/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p_recv/.build/libmynbp_p.a"
+LIBS="$LIBS /home/crinard/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/net-blocks/../.build/libmynb_p.a"
 
 AC_CONFIG_FILES([
     Makefile
@@ -155,7 +155,6 @@ AC_CONFIG_FILES([
     network/uwsun/Makefile
     network/uwstaticrouting/Makefile
     network/nb_p/Makefile
-    network/nb_p_recv/Makefile
     network/uwflooding/Makefile
     network/uwicrp/Makefile
     network/uwip/Makefile
