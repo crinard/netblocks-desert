@@ -74,11 +74,6 @@ Nb_pModule::Nb_pModule()
     char client_id[] = {0, 0, 0, 0, 0, 2};
     memcpy(nb1::nb__my_host_id, server_id, 6);
     conn = (void *)nb1::nb__establish(client_id, 8080, 8081, callbackNB1);
-    chkNetBlocksTimer.resched(10.0);
-    recvBuf = (Packet **)calloc(READ_BUF_LEN, sizeof(Packet *));
-    recvBufLen = 0;
-    sim_type = NOT_SET;
-    bind("period_", &period_);
   } else if (instance_num == 1) {
     nb2::nb__desert_init((void *)this);
     nb2::nb__net_init();
@@ -86,15 +81,13 @@ Nb_pModule::Nb_pModule()
     char client_id[] = {0, 0, 0, 0, 0, 2};
     memcpy(nb2::nb__my_host_id, client_id, 6);
     conn = (void *)nb2::nb__establish(server_id, 8081, 8080, callbackNB2);
-    chkNetBlocksTimer.resched(10.0);
-    recvBuf = (Packet **)calloc(READ_BUF_LEN, sizeof(Packet *));
-    recvBufLen = 0;
-    sim_type = NOT_SET;
-    bind("period_", &period_);
   } else {
     std::cerr << "Error: Nb_pModule only supports 2 instances ln95\n";
     assert(false);
   }
+  chkNetBlocksTimer.resched(10.0);
+  sim_type = NOT_SET;
+  bind("period_", &period_);
 }
 
 Nb_pModule::~Nb_pModule() {
@@ -158,9 +151,7 @@ void Nb_pModule::recv(Packet *p) {
     std::cerr << "Something weird here, packet direction is not UP"
               << std::endl;
   } else {
-    assert(recvBufLen < READ_BUF_LEN);
-    recvBuf[recvBufLen] = p;
-    recvBufLen++;
+    recvQ.push(p);
   }
   return;
 }

@@ -86,7 +86,7 @@ $ns use-Miracle
 ##################
 set opt(nn)                 2.0 ;# Number of Nodes
 set opt(starttime)          1	
-set opt(stoptime)           10000
+set opt(stoptime)           1000000
 set opt(txduration)         [expr $opt(stoptime) - $opt(starttime)] ;# Duration of the simulation
 set opt(txpower)            180.0  ;#Power transmitted in dB re uPa
 set opt(maxinterval_)       1.0

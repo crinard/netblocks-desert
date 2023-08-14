@@ -12,6 +12,7 @@
 #include <stdint.h>
 
 #include <map>
+#include <queue>
 #include <vector>
 
 #include "gen_headers_nb1.h"
@@ -72,12 +73,8 @@ class Nb_pModule : public Module {
 
   void senddown(Packet *p, double delay) { sendDown(p, delay); }
 
-  inline Packet **getRecvBuf(size_t *len) {
-    *len = recvBufLen;
-    return recvBuf;
-  }
-  void setRecvBufLen(size_t n) { recvBufLen = n; }
-  int getRecvBufLen(void) { return recvBufLen; }
+  inline std::queue<Packet *> &getRecvQ(void) { return recvQ; }
+  std::queue<Packet *> recvQ;
 
  protected:
   // Timers for sending, TODO: Make netblocks timers here.
@@ -115,8 +112,6 @@ class Nb_pModule : public Module {
 #define READ_BUF_LEN 1000
   void *conn;  // @NOTE: this is nb__connection_t type, treated as void to get
                // around choosing between nb1, nb2, ...
-  Packet **recvBuf;
-  size_t recvBufLen;
   double period_;
   int instance_num;
 };
