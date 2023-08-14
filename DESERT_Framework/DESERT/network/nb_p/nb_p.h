@@ -14,7 +14,8 @@
 #include <map>
 #include <vector>
 
-#include "gen_headers.h"
+#include "gen_headers_nb1.h"
+#include "gen_headers_nb2.h"
 #include "module.h"
 #include "nb_runtime.h"
 #include "packet.h"
@@ -70,6 +71,7 @@ class Nb_pModule : public Module {
   virtual int command(int, const char *const *);
 
   void senddown(Packet *p, double delay) { sendDown(p, delay); }
+
   inline Packet **getRecvBuf(size_t *len) {
     *len = recvBufLen;
     return recvBuf;

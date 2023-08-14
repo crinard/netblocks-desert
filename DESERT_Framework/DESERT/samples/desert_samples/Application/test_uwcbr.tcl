@@ -90,8 +90,9 @@ load libuwip.so
 load libuwstaticrouting.so
 load libuwmll.so
 load libuwudp.so
-load libuwcbr.so
+load libuwnetblocks.so
 
+load libuwcbr.so
 #############################
 # NS-Miracle initialization #
 #############################
@@ -104,10 +105,10 @@ $ns use-Miracle
 ##################
 set opt(nn)                 2.0 ;# Number of Nodes
 set opt(starttime)          1
-set opt(stoptime)           100000
+set opt(stoptime)           10000
 set opt(txduration)         [expr $opt(stoptime) - $opt(starttime)]
 
-set opt(maxinterval_)       20.0
+set opt(maxinterval_)       1.0
 set opt(freq)               25000.0
 set opt(bw)                 5000.0
 set opt(bitrate)            4800.0
@@ -115,8 +116,8 @@ set opt(ack_mode)           "setNoAckMode"
 
 set opt(txpower)            135.0 
 set opt(rngstream)	        1
-set opt(pktsize)            125
-set opt(cbr_period)         60
+set opt(pktsize)            390
+set opt(cbr_period)         10.0
 
 if {$opt(bash_parameters)} {
     if {$argc != 3} {

@@ -93,7 +93,7 @@ set opt(maxinterval_)       1.0
 set opt(freq)               25000.0 ;#Frequency used in Hz
 set opt(bw)                 5000.0	;#Bandwidth used in Hz
 set opt(bitrate)            4800.0	;#bitrate in bps
-set opt(ack_mode)           "setAckMode"
+set opt(ack_mode)           "setNoAckMode"
 set opt(rngstream)	1
 
 
@@ -153,7 +153,7 @@ proc createNodes {} {
     
     set node(0) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
     set node(1) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
-    Module/UW/Nb_p set period_ 20.0
+    Module/UW/Nb_p set period_ 10.0
 
     set prnt(0)  [new Module/UW/Nb_p]
     set prnt(1)  [new Module/UW/Nb_p]

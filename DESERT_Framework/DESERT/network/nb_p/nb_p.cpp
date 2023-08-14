@@ -46,7 +46,7 @@ static void callbackNB1(int event, nb1::nb__connection_t *c) {
     char buff[1000];
     int len = nb1::nb__read(c, buff, 1000);
     buff[len] = 0;
-    printf("Server recieved %s from client\n", buff);
+    printf("Nb1 recieved %s from Nb2\n", buff);
     recvd_packets++;
     recvd_bytes += len;
   }
@@ -56,7 +56,7 @@ static void callbackNB2(int event, nb2::nb__connection_t *c) {
     char buff[1000];
     int len = nb2::nb__read(c, buff, 1000);
     buff[len] = 0;
-    printf("Server recieved %s from client\n", buff);
+    printf("Nb2 recieved %s from Nb1\n", buff);
     recvd_packets++;
     recvd_bytes += len;
   }
@@ -92,6 +92,7 @@ Nb_pModule::Nb_pModule()
     sim_type = NOT_SET;
     bind("period_", &period_);
   } else {
+    std::cerr << "Error: Nb_pModule only supports 2 instances ln95\n";
     assert(false);
   }
 }
@@ -102,6 +103,7 @@ Nb_pModule::~Nb_pModule() {
   } else if (instance_num == 1) {
     nb2::nb__desert_deinit();
   } else {
+    std::cerr << "Error: Nb_pModule only supports 2 instances ln106\n";
     assert(false);
   }
   chkNetBlocksTimer.force_cancel();
@@ -182,11 +184,13 @@ void Nb_pModule::uwSendTimerAppl::expire(Event *e) {
     m_->sendPkt();
     m_->chkTimerPeriod.resched(m_->period_);  // schedule next transmission
   }
-  if (m_->instance_num == 0)
+  if (m_->instance_num == 0) {
+    std::cout << "NB1 period: " << m_->period_ << "\n";
     nb1::nb__main_loop_step();
-  else if (m_->instance_num == 1)
+  } else if (m_->instance_num == 1) {
+    std::cout << "NB2 period: " << m_->period_ << "\n";
     nb2::nb__main_loop_step();
-  else
+  } else
     assert(false);
 }
 
@@ -195,10 +199,10 @@ void Nb_pModule::sendPkt(void) {
     std::cerr << "sim_type not set\n";
     if (instance_num == 0)
       nb1::nb__send((nb1::nb__connection_t *)conn, "Hello", sizeof("Hello"));
-    else if (instance_num == 1)
-      nb2::nb__send((nb2::nb__connection_t *)conn, "Hello", sizeof("Hello"));
-    else
-      assert(false);
+    // if (instance_num == 1)
+    //   nb2::nb__send((nb2::nb__connection_t *)conn, "Hello", sizeof("Hello"));
+    // else
+    //   assert(false);
     sent_packets++;
     sent_bytes += sizeof("Hello");
     return;
@@ -207,11 +211,11 @@ void Nb_pModule::sendPkt(void) {
     if (instance_num == 0)
       nb1::nb__send((nb1::nb__connection_t *)conn, CONTROL_MSG,
                     sizeof(CONTROL_MSG) - r);
-    else if (instance_num == 1)
-      nb2::nb__send((nb2::nb__connection_t *)conn, CONTROL_MSG,
-                    sizeof(CONTROL_MSG) - r);
-    else
-      assert(false);
+    // if (instance_num == 1)
+    //   nb2::nb__send((nb2::nb__connection_t *)conn, CONTROL_MSG,
+    //                 sizeof(CONTROL_MSG) - r);
+    // else
+    //     // assert(false);
     sent_packets++;
     sent_bytes += sizeof(CONTROL_MSG) - r;
   }

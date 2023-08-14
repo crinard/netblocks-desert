@@ -216,15 +216,6 @@ UwCbrModule::command(int argc, const char *const *argv)
 		} else if (strcasecmp(argv[1], "printidspkts") == 0) {
 			this->printIdsPkts();
 			return TCL_OK;
-		} else if (strcasecmp(argv[1], "setmodehello") == 0) {
-			this->setmodehello();
-			return TCL_OK;
-		} else if (strcasecmp(argv[1], "setmodetelem") == 0) {
-			this->setmodetelem();
-			return TCL_OK;
-		} else if (strcasecmp(argv[1], "setmodevideo") == 0) {
-			this->setmodevideo();
-			return TCL_OK;
 		}
 	} else if (argc == 3) {
 		if (strcasecmp(argv[1], "setLogSuffix") == 0){
@@ -269,24 +260,14 @@ UwCbrModule::initPkt(Packet *p)
 	hdr_cmn *ch = hdr_cmn::access(p);
 	ch->uid() = uidcnt_++;
 	ch->ptype() = PT_UWCBR;
-	if (mode)
-	{
-		ch->size() = sizeof("Hello");
-	} else {
-		int ree = rand() % 100;
-		ch->size() = 163 - ree;	
-	}
+	ch->size() = pktSize_;
 
 	hdr_uwip *uwiph = hdr_uwip::access(p);
 	uwiph->daddr() = dstAddr_;
 
-	// Transport layer variables 
 	hdr_uwudp *uwudp = hdr_uwudp::access(p);
 	uwudp->dport() = dstPort_;
 
-	hdr_uwnetblocks *uwnetblocks = hdr_uwnetblocks::access(p);
-	uwnetblocks->dport() = dstPort_;
-	
 	hdr_uwcbr *uwcbrh = HDR_UWCBR(p);
 	uwcbrh->sn() = txsn++;
 	uwcbrh->priority() = priority_;
@@ -315,10 +296,11 @@ UwCbrModule::sendPkt()
 	this->initPkt(p);
 	hdr_cmn *ch = hdr_cmn::access(p);
 	hdr_uwcbr *uwcbrh = HDR_UWCBR(p);
-	printf("CbrModule(%d)::sendPkt, send a pkt (%d) with sn: %d\n",
-			getId(),
-			ch->uid(),
-			uwcbrh->sn());
+	if (debug_ > 10)
+		printf("CbrModule(%d)::sendPkt, send a pkt (%d) with sn: %d\n",
+				getId(),
+				ch->uid(),
+				uwcbrh->sn());
 	sendDown(p, delay);
 }
 
@@ -331,11 +313,11 @@ UwCbrModule::sendPktLowPriority()
 	hdr_cmn *ch = hdr_cmn::access(p);
 	hdr_uwcbr *uwcbrh = HDR_UWCBR(p);
 	uwcbrh->priority() = 0;
-	printf("CbrModule(%d)::sendPkt LOW PRIORITY, send a pkt (%d) with sn: %d\n",
-			getId(),
-			ch->uid(),
-			uwcbrh->sn());
-	
+	if (debug_ > 10)
+		printf("CbrModule(%d)::sendPkt, send a pkt (%d) with sn: %d\n",
+				getId(),
+				ch->uid(),
+				uwcbrh->sn());
 	sendDown(p, delay);
 }
 
@@ -348,10 +330,11 @@ UwCbrModule::sendPktHighPriority()
 	hdr_cmn *ch = hdr_cmn::access(p);
 	hdr_uwcbr *uwcbrh = HDR_UWCBR(p);
 	uwcbrh->priority() = 1;
-	printf("CbrModule(%d)::sendPkt HIGH PRIORITY, send a pkt (%d) with sn: %d\n",
-			getId(),
-			ch->uid(),
-			uwcbrh->sn());
+	if (debug_ > 10)
+		printf("CbrModule(%d)::sendPkt, send a pkt (%d) with sn: %d\n",
+				getId(),
+				ch->uid(),
+				uwcbrh->sn());
 	sendDown(p, delay);
 }
 
@@ -371,6 +354,7 @@ UwCbrModule::stop()
 void
 UwCbrModule::recv(Packet *p, Handler *h)
 {
+	//    hdr_cmn* ch = hdr_cmn::access(p);
 	recv(p);
 }
 
@@ -380,9 +364,10 @@ UwCbrModule::recv(Packet *p)
 	hdr_cmn *ch = hdr_cmn::access(p);
 	hdr_uwip *uwiph = hdr_uwip::access(p);
 
-	printf("CbrModule(%d)::recv(Packet*p,Handler*) pktId %d\n",
-			getId(),
-			ch->uid());
+	if (debug_ > 10)
+		printf("CbrModule(%d)::recv(Packet*p,Handler*) pktId %d\n",
+				getId(),
+				ch->uid());
 
 	if (ch->ptype() != PT_UWCBR) {
 		drop(p, 1, UWCBR_DROP_REASON_UNKNOWN_TYPE);
@@ -622,22 +607,4 @@ UwCbrModule::printReceivedPacket(Packet *p)
 				<< (int) uwiph->saddr() << " " << (int) uwiph->daddr() << " " << ch->size() <<"\n";
 		tracefile.flush();
 	}
-}
-
-void 
-UwCbrModule::setmodehello(void) {
-	mode = 0;
-	std::cout << "set mode hello\n";
-}
-
-void 
-UwCbrModule::setmodetelem(void) {
-	mode = 1;
-	std::cout << "set mode telem\n";
-}
-
-void 
-UwCbrModule::setmodevideo(void) {
-	mode = 2;
-	std::cout << "set mode video\n";
 }
