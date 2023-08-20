@@ -75,6 +75,10 @@ class Nb_pModule : public Module {
 
   inline std::queue<Packet *> &getRecvQ(void) { return recvQ; }
   std::queue<Packet *> recvQ;
+  int recvd_packets;
+  size_t recvd_bytes;
+  int sent_packets;
+  size_t sent_bytes;
 
  protected:
   // Timers for sending, TODO: Make netblocks timers here.
@@ -109,13 +113,11 @@ class Nb_pModule : public Module {
   uwSendTimerAppl chkTimerPeriod;
   uwSendTimerAppl chkNetBlocksTimer;
   type_sim_t sim_type;
-#define READ_BUF_LEN 1000
   void *conn;  // @NOTE: this is nb__connection_t type, treated as void to get
                // around choosing between nb1, nb2, ...
   double period_;
   int instance_num;
 };
-// int Nb_pModule::instance_cnt = 0;
 #define CONTROL_MSG                                                         \
   ("KPAO KPAO RJAA May 07 2023 in N819LA DA40 DA40 B757 NULUK R220 NIPPI "  \
    "R220 NANAC OTR10 KAGIS BOSPA BOSPSB  B757 NULUK R220 NIPPI R220 NANAC " \

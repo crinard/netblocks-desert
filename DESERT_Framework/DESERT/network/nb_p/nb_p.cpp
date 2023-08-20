@@ -16,7 +16,7 @@
 #include <string>
 
 #include "nb_runtime.h"
-#define MAX_TX_LEN 980
+// #define MAX_TX_LEN 980
 #define TELEM_FILE_PATH                                                    \
   "/home/crinard/Desktop/DESERT_Underwater/DESERT_Framework/example_data/" \
   "navlog.txt"
@@ -26,6 +26,7 @@ extern char nb1::nb__my_host_id[];
 extern char nb2::nb__my_host_id[];
 
 static int num_instances = 0;
+static Nb_pModule *modules[2];
 /**
  * Adds the module for Nb_pModuleClass in ns2.
  */
@@ -36,19 +37,14 @@ static class Nb_pModuleClass : public TclClass {
   TclObject *create(int, const char *const *) { return (new Nb_pModule); }
 } class_nb_p_module;
 
-static int recvd_packets = 0;
-static size_t recvd_bytes = 0;
-static int sent_packets = 0;
-static int sent_bytes = 0;
-
 static void callbackNB1(int event, nb1::nb__connection_t *c) {
   if (event == QUEUE_EVENT_READ_READY) {
     char buff[1000];
     int len = nb1::nb__read(c, buff, 1000);
     buff[len] = 0;
     printf("Nb1 recieved %s from Nb2\n", buff);
-    recvd_packets++;
-    recvd_bytes += len;
+    modules[0]->recvd_packets++;
+    modules[0]->recvd_bytes += len;
   }
 }
 static void callbackNB2(int event, nb2::nb__connection_t *c) {
@@ -57,8 +53,8 @@ static void callbackNB2(int event, nb2::nb__connection_t *c) {
     int len = nb2::nb__read(c, buff, 1000);
     buff[len] = 0;
     printf("Nb2 recieved %s from Nb1\n", buff);
-    recvd_packets++;
-    recvd_bytes += len;
+    modules[1]->recvd_packets++;
+    modules[1]->recvd_bytes += len;
   }
 }
 Nb_pModule::Nb_pModule()
@@ -74,6 +70,7 @@ Nb_pModule::Nb_pModule()
     char client_id[] = {0, 0, 0, 0, 0, 2};
     memcpy(nb1::nb__my_host_id, server_id, 6);
     conn = (void *)nb1::nb__establish(client_id, 8080, 8081, callbackNB1);
+    modules[0] = this;
   } else if (instance_num == 1) {
     nb2::nb__desert_init((void *)this);
     nb2::nb__net_init();
@@ -81,6 +78,7 @@ Nb_pModule::Nb_pModule()
     char client_id[] = {0, 0, 0, 0, 0, 2};
     memcpy(nb2::nb__my_host_id, client_id, 6);
     conn = (void *)nb2::nb__establish(server_id, 8081, 8080, callbackNB2);
+    modules[1] = this;
   } else {
     std::cerr << "Error: Nb_pModule only supports 2 instances ln95\n";
     assert(false);
@@ -88,6 +86,10 @@ Nb_pModule::Nb_pModule()
   chkNetBlocksTimer.resched(10.0);
   sim_type = NOT_SET;
   bind("period_", &period_);
+  recvd_packets = 0;
+  recvd_bytes = 0;
+  sent_packets = 0;
+  sent_bytes = 0;
 }
 
 Nb_pModule::~Nb_pModule() {
@@ -181,32 +183,35 @@ void Nb_pModule::uwSendTimerAppl::expire(Event *e) {
   } else if (m_->instance_num == 1) {
     std::cout << "NB2 period: " << m_->period_ << "\n";
     nb2::nb__main_loop_step();
-  } else
+  } else {
     assert(false);
+  }
 }
 
 void Nb_pModule::sendPkt(void) {
   if (sim_type == NOT_SET) {
     std::cerr << "sim_type not set\n";
-    if (instance_num == 0)
+    if (instance_num == 0) {
       nb1::nb__send((nb1::nb__connection_t *)conn, "Hello", sizeof("Hello"));
-    // if (instance_num == 1)
-    //   nb2::nb__send((nb2::nb__connection_t *)conn, "Hello", sizeof("Hello"));
-    // else
-    //   assert(false);
+    } else if (instance_num == 1) {
+      nb2::nb__send((nb2::nb__connection_t *)conn, "Hello", sizeof("Hello"));
+    } else {
+      assert(false);
+    }
     sent_packets++;
     sent_bytes += sizeof("Hello");
     return;
   } else if (sim_type == CONTROL_STREAM) {
     int r = rand() % 100;
-    if (instance_num == 0)
+    if (instance_num == 0) {
       nb1::nb__send((nb1::nb__connection_t *)conn, CONTROL_MSG,
                     sizeof(CONTROL_MSG) - r);
-    // if (instance_num == 1)
-    //   nb2::nb__send((nb2::nb__connection_t *)conn, CONTROL_MSG,
-    //                 sizeof(CONTROL_MSG) - r);
-    // else
-    //     // assert(false);
+    } else if (instance_num == 1) {
+      nb2::nb__send((nb2::nb__connection_t *)conn, CONTROL_MSG,
+                    sizeof(CONTROL_MSG) - r);
+    } else {
+      assert(false);
+    }
     sent_packets++;
     sent_bytes += sizeof(CONTROL_MSG) - r;
   }
@@ -214,15 +219,15 @@ void Nb_pModule::sendPkt(void) {
 
 double Nb_pModule::getSentPkts(void) { return sent_packets; }
 double Nb_pModule::getRecvPkts(void) { return recvd_packets; }
+double Nb_pModule::getSentBytes(void) { return sent_bytes; }
+double Nb_pModule::getRecvBytes(void) { return recvd_bytes; }
 
 double Nb_pModule::getDropPkts(void) { return 0.0; }
 double Nb_pModule::getDelay(void) { return 0.0; }
-double Nb_pModule::getRecvBytes(void) { return recvd_bytes; }
+
 double Nb_pModule::getHeaderSize(void) { return 0.0; }
 bool Nb_pModule::set_mode_telem(void) {
   if (sim_type != NOT_SET) return false;
   sim_type = CONTROL_STREAM;
   return true;
 }
-
-double Nb_pModule::getSentBytes(void) { return sent_bytes; }
