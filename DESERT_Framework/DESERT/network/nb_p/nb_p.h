@@ -117,6 +117,7 @@ class Nb_pModule : public Module {
                // around choosing between nb1, nb2, ...
   double period_;
   int instance_num;
+  int rxd;
 };
 #define CONTROL_MSG                                                         \
   ("KPAO KPAO RJAA May 07 2023 in N819LA DA40 DA40 B757 NULUK R220 NIPPI "  \

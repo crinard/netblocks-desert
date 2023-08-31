@@ -42,7 +42,7 @@ static void callbackNB1(int event, nb1::nb__connection_t *c) {
     char buff[1000];
     int len = nb1::nb__read(c, buff, 1000);
     buff[len] = 0;
-    printf("Nb1 recieved %s from Nb2\n", buff);
+    // printf("Nb1 recieved %s from Nb2\n", buff);
     modules[0]->recvd_packets++;
     modules[0]->recvd_bytes += len;
   }
@@ -52,7 +52,7 @@ static void callbackNB2(int event, nb2::nb__connection_t *c) {
     char buff[1000];
     int len = nb2::nb__read(c, buff, 1000);
     buff[len] = 0;
-    printf("Nb2 recieved %s from Nb1\n", buff);
+    // printf("Nb2 recieved %s from Nb1\n", buff);
     modules[1]->recvd_packets++;
     modules[1]->recvd_bytes += len;
   }
@@ -178,10 +178,8 @@ void Nb_pModule::uwSendTimerAppl::expire(Event *e) {
     m_->chkTimerPeriod.resched(m_->period_);  // schedule next transmission
   }
   if (m_->instance_num == 0) {
-    std::cout << "NB1 period: " << m_->period_ << "\n";
     nb1::nb__main_loop_step();
   } else if (m_->instance_num == 1) {
-    std::cout << "NB2 period: " << m_->period_ << "\n";
     nb2::nb__main_loop_step();
   } else {
     assert(false);
@@ -190,7 +188,6 @@ void Nb_pModule::uwSendTimerAppl::expire(Event *e) {
 
 void Nb_pModule::sendPkt(void) {
   if (sim_type == NOT_SET) {
-    std::cerr << "sim_type not set\n";
     if (instance_num == 0) {
       nb1::nb__send((nb1::nb__connection_t *)conn, "Hello", sizeof("Hello"));
     } else if (instance_num == 1) {
