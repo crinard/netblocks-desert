@@ -79,7 +79,8 @@ class Nb_pModule : public Module {
   size_t recvd_bytes;
   int sent_packets;
   size_t sent_bytes;
-
+  void *conn;  // @NOTE: this is nb__connection_t type, treated as void to get
+               // around choosing between nb1, nb2, ...
  protected:
   // Timers for sending, TODO: Make netblocks timers here.
   class uwSendTimerAppl : public TimerHandler {
@@ -113,8 +114,6 @@ class Nb_pModule : public Module {
   uwSendTimerAppl chkTimerPeriod;
   uwSendTimerAppl chkNetBlocksTimer;
   type_sim_t sim_type;
-  void *conn;  // @NOTE: this is nb__connection_t type, treated as void to get
-               // around choosing between nb1, nb2, ...
   double period_;
   int instance_num;
   int rxd;
