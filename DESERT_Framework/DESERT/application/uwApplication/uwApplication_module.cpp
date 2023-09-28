@@ -417,6 +417,7 @@ void uwApplicationModule::init_Packet() {
                                      // created
   ch->size() = payloadsize;          // Assign the size of data payload
   uwApph->payload_size() = payloadsize;
+  printf("payload size = %i\n", payloadsize);
   ch->direction() = hdr_cmn::DOWN;  // The packet must be forward at the level
                                     // above of him
 

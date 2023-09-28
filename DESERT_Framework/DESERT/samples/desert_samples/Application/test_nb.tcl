@@ -85,10 +85,10 @@ $ns use-Miracle
 ##################
 set opt(nn)                 2.0 ;# Number of Nodes
 set opt(starttime)          1	
-set opt(stoptime)           1000000
+set opt(stoptime)           100000
 set opt(txduration)         [expr $opt(stoptime) - $opt(starttime)] ;# Duration of the simulation
 set opt(txpower)            180.0  ;#Power transmitted in dB re uPa
-set opt(maxinterval_)       1.0
+set opt(maxinterval_)       10.0
 set opt(freq)               25000.0 ;#Frequency used in Hz
 set opt(bw)                 5000.0	;#Bandwidth used in Hz
 set opt(bitrate)            4800.0	;#bitrate in bps
@@ -152,7 +152,7 @@ proc createNodes {} {
     
     set node(0) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
     set node(1) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
-    Module/UW/Nb_p set period_ 100.0
+    Module/UW/Nb_p set period_ 60.0
 
     set prnt(0)  [new Module/UW/Nb_p]
     set prnt(1)  [new Module/UW/Nb_p]
@@ -226,8 +226,8 @@ proc createNodes {} {
     $mac(1) initialize
     puts "$mac(0) setMacAddr 0"
     puts "$mac(1) setMacAddr 1"
-    # $prnt(1) settelem
-    # $prnt(0) settelem
+    $prnt(1) settelem
+    $prnt(0) settelem
 }
 
 #################
