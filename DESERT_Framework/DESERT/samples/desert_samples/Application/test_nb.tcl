@@ -69,7 +69,6 @@ load libuwip.so
 load libuwstaticrouting.so
 load libuwmll.so
 load libuwudp.so
-load libuwnetblocks.so
 load libnb_p.so
 load libuwcbr.so
 load libuwcsmaaloha.so
@@ -153,7 +152,7 @@ proc createNodes {} {
     
     set node(0) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
     set node(1) [$ns create-M_Node $opt(tracefile) $opt(cltracefile)] 
-    Module/UW/Nb_p set period_ 10.0
+    Module/UW/Nb_p set period_ 100.0
 
     set prnt(0)  [new Module/UW/Nb_p]
     set prnt(1)  [new Module/UW/Nb_p]
@@ -194,12 +193,12 @@ proc createNodes {} {
     # $posdb(1) addpos [$ipif(1) addr] $position(1)
     
     #Setup positions
-    $position(0) setX_ [expr 0*10000]
+    $position(0) setX_ [expr 0*200]
     $position(0) setY_ [expr 0*200]
     $position(0) setZ_ -100
 
-    $position(1) setX_ [expr 1*200]
-    $position(1) setY_ [expr 1*200]
+    $position(1) setX_ [expr 1*1]
+    $position(1) setY_ [expr 1*1]
     $position(1) setZ_ -100
     
     #Interference model

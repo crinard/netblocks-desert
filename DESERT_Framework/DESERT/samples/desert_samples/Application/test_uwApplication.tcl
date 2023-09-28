@@ -90,7 +90,6 @@ load libuwip.so
 load libuwstaticrouting.so
 load libuwmll.so
 load libuwudp.so
-load libuwnetblocks.so
 load libuwapplication.so
 
 #############################

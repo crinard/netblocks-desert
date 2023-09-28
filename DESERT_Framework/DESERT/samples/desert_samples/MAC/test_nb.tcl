@@ -69,7 +69,6 @@ load libuwip.so
 load libuwstaticrouting.so
 load libuwmll.so
 load libuwudp.so
-load libuwnetblocks.so
 load libnb_p.so
 load libuwcbr.so
 load libuwcsmaaloha.so

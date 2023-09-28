@@ -54,8 +54,6 @@ libnb_p_la_CPPFLAGS = @NS_CPPFLAGS@ @NSMIRACLE_CPPFLAGS@ @DESERT_CPPFLAGS@ -I /h
 #libnb_p_la_LDFLAGS =  @NS_LDFLAGS@ @NSMIRACLE_LDFLAGS@ @DESERT_LDFLAGS@ -L /home/crinard/Desktop/DESERT_Underwater/DESERT_Framework/DESERT/network/nb_p/.build/ -lmynb_p
 libnb_p_la_LDFLAGS =  @NS_LDFLAGS@ @NSMIRACLE_LDFLAGS@ @DESERT_LDFLAGS@
 
-# TODO: Add -L /home/netblcoks/build -lnetblocks #should be named libnetbloks.a -- should come at the end.
-# Also -I the header files for netblocks 
 libnb_p_la_LIBADD = @NS_LIBADD@ @NSMIRACLE_LIBADD@ @DESERT_LIBADD@
 
 nodist_libnb_p_la_SOURCES = InitTcl.cc

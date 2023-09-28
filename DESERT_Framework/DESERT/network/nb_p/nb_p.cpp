@@ -57,10 +57,7 @@ static void callbackNB2(int event, nb2::nb__connection_t *c) {
     modules[1]->recvd_bytes += len;
   }
 }
-Nb_pModule::Nb_pModule()
-    : chkTimerPeriod(this, false),
-      chkNetBlocksTimer(this, true),
-      period_(60.0) {
+Nb_pModule::Nb_pModule() : chkTimerPeriod(this), period_(60.0) {
   instance_num = num_instances;
   num_instances++;
   if (instance_num == 0) {
@@ -83,13 +80,14 @@ Nb_pModule::Nb_pModule()
     std::cerr << "Error: Nb_pModule only supports 2 instances ln95\n";
     assert(false);
   }
-  chkNetBlocksTimer.resched(10.0);
   sim_type = NOT_SET;
   bind("period_", &period_);
   recvd_packets = 0;
   recvd_bytes = 0;
   sent_packets = 0;
   sent_bytes = 0;
+  recvP = 0;
+  recvb = 0;
 }
 
 Nb_pModule::~Nb_pModule() {
@@ -101,7 +99,6 @@ Nb_pModule::~Nb_pModule() {
     std::cerr << "Error: Nb_pModule only supports 2 instances ln106\n";
     assert(false);
   }
-  chkNetBlocksTimer.force_cancel();
   chkTimerPeriod.force_cancel();
 }
 
@@ -154,6 +151,8 @@ void Nb_pModule::recv(Packet *p) {
               << std::endl;
   } else {
     recvQ.push(p);
+    recvP++;
+    recvb += p->datalen();
   }
   return;
 }
@@ -163,20 +162,17 @@ void Nb_pModule::start_gen(void) { chkTimerPeriod.resched(period_); }
 void Nb_pModule::stop_gen(void) {
   std::cout << "stop_gen\n";
   chkTimerPeriod.force_cancel();
-  chkNetBlocksTimer.force_cancel();
   if (instance_num == 0)
     nb1::nb__desert_deinit();
   else if (instance_num == 1)
     nb2::nb__desert_deinit();
+
+  std::cout << recvP << "packets recieved" << recvb << "bytes recvd\n";
 }
 
 void Nb_pModule::uwSendTimerAppl::expire(Event *e) {
-  if (isNb_) {
-    m_->chkNetBlocksTimer.resched(10.0);
-  } else {
-    m_->sendPkt();
-    m_->chkTimerPeriod.resched(m_->period_);  // schedule next transmission
-  }
+  m_->sendPkt();
+  m_->chkTimerPeriod.resched(m_->period_);  // schedule next transmission
   if (m_->instance_num == 0) {
     nb1::nb__main_loop_step();
   } else if (m_->instance_num == 1) {

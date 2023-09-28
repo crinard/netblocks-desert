@@ -37,8 +37,7 @@ lib_LTLIBRARIES = libuwapplication.la
 libuwapplication_la_SOURCES = initlib.cpp \
 			      uwApplication_module.cpp \
 			      uwApplication_TCP_socket.cpp\
-			      uwApplication_UDP_socket.cpp \
-				  uwApplication_NETBLOCKS_socket.cpp
+			      uwApplication_UDP_socket.cpp
 			 
 libuwapplication_la_CPPFLAGS = @NS_CPPFLAGS@ @NSMIRACLE_CPPFLAGS@ @DESERT_CPPFLAGS@
 libuwapplication_la_LDFLAGS = @NS_LDFLAGS@ @NSMIRACLE_LDFLAGS@ @DESERT_LDFLAGS@

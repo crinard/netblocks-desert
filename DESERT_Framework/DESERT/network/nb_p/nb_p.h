@@ -85,17 +85,13 @@ class Nb_pModule : public Module {
   // Timers for sending, TODO: Make netblocks timers here.
   class uwSendTimerAppl : public TimerHandler {
    public:
-    uwSendTimerAppl(Nb_pModule *m, bool isNb) : TimerHandler() {
-      m_ = m;
-      isNb_ = isNb;
-    }
+    uwSendTimerAppl(Nb_pModule *m) : TimerHandler() { m_ = m; }
 
     virtual ~uwSendTimerAppl() {}
 
    protected:
     virtual void expire(Event *e);
     Nb_pModule *m_;
-    bool isNb_;
   };  // End uwSendTimer class
 
   // Functions to start and stop generation
@@ -112,11 +108,12 @@ class Nb_pModule : public Module {
   virtual double getRecvBytes(void);
   virtual double getSentBytes(void);
   uwSendTimerAppl chkTimerPeriod;
-  uwSendTimerAppl chkNetBlocksTimer;
   type_sim_t sim_type;
   double period_;
   int instance_num;
   int rxd;
+  int recvP;
+  int recvb;
 };
 #define CONTROL_MSG                                                         \
   ("KPAO KPAO RJAA May 07 2023 in N819LA DA40 DA40 B757 NULUK R220 NIPPI "  \

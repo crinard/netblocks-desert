@@ -37,15 +37,14 @@
 #ifndef MSOCKET_H
 #define MSOCKET_H
 
-#include <uwconnector.h>
-
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <string>
 #include <sys/socket.h>
+#include <uwconnector.h>
 
 #include <iostream>
+#include <string>
 
 constexpr char udp_init_string[] = "a";
 
@@ -55,117 +54,99 @@ constexpr char udp_init_string[] = "a";
  * the socket buffer ans retrieving data: while sending is done in
  * the calling thread.
  */
-class UwSocket : public UwConnector
-{
+class UwSocket : public UwConnector {
+ public:
+  /**
+   * Enum structure thet represents the transport protocol being used.
+   * The two possible choices are, of course, TCP or UDP.
+   */
+  enum class Transport { TCP = 0, UDP = 1 };
+  /**
+   * Constructor of the UwSocket class
+   */
+  UwSocket();
 
-public:
-	/**
-	 * Enum structure thet represents the transport protocol being used.
-	 * The two possible choices are, of course, TCP or UDP.
-	 */
-	enum class Transport { TCP = 0, UDP=1, NETBLOCKS=2};
-	/**
-	 * Constructor of the UwSocket class
-	 */
-	UwSocket();
+  /**
+   * Destructor of the UwSocket class
+   */
+  virtual ~UwSocket();
 
-	/**
-	 * Destructor of the UwSocket class
-	 */
-	virtual ~UwSocket();
+  /**
+   * Method that opens a TCP or UDP connection, accordinto to UwSocket::proto
+   * variable: the behavior depends both on the transport protocol selected
+   * and the path specified in the constructor parameter.
+   * If TCP is set:
+   * - IP:PORT will try to connect to the provided IP and PORT
+   * - PORT will try to connect to the provided port on localhost
+   * if, otherwise, UDP is set:
+   * - IP:PORT will save the IP and port for data forwarding
+   * - PORT will bind the provided port to receive data through it
+   * @return boolean true if connection is correctly opened, false otherwise
+   */
+  virtual bool openConnection(const std::string &path);
 
-	/**
-	 * Method that opens a TCP or UDP connection, accordinto to UwSocket::proto
-	 * variable: the behavior depends both on the transport protocol selected
-	 * and the path specified in the constructor parameter.
-	 * If TCP is set:
-	 * - IP:PORT will try to connect to the provided IP and PORT
-	 * - PORT will try to connect to the provided port on localhost
-	 * if, otherwise, UDP is set:
-	 * - IP:PORT will save the IP and port for data forwarding
-	 * - PORT will bind the provided port to receive data through it
-	 * @return boolean true if connection is correctly opened, false otherwise
-	 */
-	virtual bool openConnection(const std::string &path);
+  /**
+   * Method that closes an active connection to a device
+   * @return boolean true if connection is correctly closed, false otherwise
+   */
+  virtual bool closeConnection();
 
-	/**
-	 * Method that closes an active connection to a device
-	 * @return boolean true if connection is correctly closed, false otherwise
-	 */
-	virtual bool closeConnection();
+  /**
+   * Returns true if socket fd differs from -1, that means the
+   * connection is up
+   * @return if socket file descriptor is valid
+   */
+  virtual const bool isConnected();
 
-	/**
-	 * Returns true if socket fd differs from -1, that means the
-	 * connection is up
-	 * @return if socket file descriptor is valid
-	 */
-	virtual const bool isConnected();
+  /**
+   * Method that writes a command to the modem interface
+   * @param msg std::string command to be sent to the device
+   */
+  virtual int writeToDevice(const std::string &msg);
 
-	/**
-	 * Method that writes a command to the modem interface
-	 * @param msg std::string command to be sent to the device
-	 */
-	virtual int writeToDevice(const std::string& msg);
+  /**
+   * Function that dumps data from the device's memory to a backup buffer.
+   * The unloaded data is saved to a temporary buffer, to be parsed later.
+   * @param pos position to start writing data to: a pointer to some buffer
+   * @return ineger number of read bytes
+   */
+  virtual int readFromDevice(void *wpos, int maxlen);
 
-	/**
-	 * Function that dumps data from the device's memory to a backup buffer.
-	 * The unloaded data is saved to a temporary buffer, to be parsed later.
-	 * @param pos position to start writing data to: a pointer to some buffer
-	 * @return ineger number of read bytes
-	 */
-	virtual int readFromDevice(void *wpos, int maxlen);
+  /**
+   * Method that sets TCP as transport protocol
+   */
+  virtual void setTCP() { proto = Transport::TCP; };
+  /**
+   * Method that sets UDP as transport protocol
+   */
+  virtual void setUDP() {
+    proto = Transport::UDP;
+    std::cout << "UDP set" << std::endl;
+  };
+  /**
+   * Method that sets SERVER role
+   */
+  virtual void setServer() { isClient = false; };
 
-	/**
-	 * Method that sets TCP as transport protocol
-	 */
-	virtual void
-	setTCP()
-	{
-		proto = Transport::TCP;
-	};
-	/**
-	 * Method that sets UDP as transport protocol
-	 */
-	virtual void
-	setUDP()
-	{
-		proto = Transport::UDP;
-		std::cout << "UDP set" << std::endl;
-	};
-	virtual void 
-	setNETBLOCKS()
-	{
-		proto = Transport::NETBLOCKS;
-		std::cout << "NETBLOCKS set" << std::endl;
-	};
-	/**
-	 * Method that sets SERVER role
-	 */
-	virtual void
-	setServer()
-	{
-		isClient = false;
-	};
+ private:
+  /**
+   * Integer value that stores the socket descriptor as generated by the
+   * function UwSocket::openConnection().
+   */
+  int socketfd;
+  /**
+   * Transport protocol to be used: either Transport::TCP, Transport::UDP
+   */
+  Transport proto;
+  /**
+   * Bool value that defines the role of the socket
+   */
+  bool isClient;
 
-private:
-	/**
-	 * Integer value that stores the socket descriptor as generated by the
-	 * function UwSocket::openConnection().
-	 */
-	int socketfd;
-	/**
-	 * Transport protocol to be used: either Transport::TCP, Transport::UDP, or Transport::NETBLOCKS
-	 */
-	Transport proto;
-	/**
-	 * Bool value that defines the role of the socket
-	 */
-	bool isClient;
-
-	/**
-	 * 
-	 */
-	struct sockaddr_in cl_addr;
+  /**
+   *
+   */
+  struct sockaddr_in cl_addr;
 };
 
 #endif
