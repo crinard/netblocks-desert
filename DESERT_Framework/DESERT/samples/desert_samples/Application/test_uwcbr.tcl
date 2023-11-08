@@ -115,7 +115,7 @@ set opt(ack_mode)           "setNoAckMode"
 
 set opt(txpower)            135.0 
 set opt(rngstream)	        1
-set opt(pktsize)            125
+set opt(pktsize)            40
 set opt(cbr_period)         60
 
 if {$opt(bash_parameters)} {
