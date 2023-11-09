@@ -253,7 +253,7 @@ uwApplicationModule::init_Packet_TCP()
 
 		// Transport header fields
 		uwudph->dport() = port_num;
-		
+
 		// IP header fields
 		uwiph->daddr() = dst_addr;
 
